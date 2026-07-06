@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An Viet Map Studio Pro V8.0</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.js'></script>
+    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.css' type='text/css' />
+    
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+
+    <style>
+        :root {
+            --bg-dark: #121212; --panel-bg: #1e1e1e; --panel-sub: #2a2a2a;
+            --text: #ffffff; --border: #333333; --primary: #3b82f6; --primary-hover: #2563eb;
+        }
+
+        body { margin: 0; display: flex; height: 100vh; background-color: var(--bg-dark); color: var(--text); font-family: 'Manrope', sans-serif; font-size: 14px; overflow: hidden; }
+        
+        #sidebar { width: 380px; background: var(--panel-bg); display: flex; flex-direction: column; border-right: 1px solid var(--border); z-index: 10; overflow-y: auto; padding: 20px; gap: 20px; box-sizing: border-box; }
+        
+        .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .header h2 { margin: 0; font-weight: 800; font-size: 20px; letter-spacing: 1px; }
+        
+        .box { background: var(--panel-sub); padding: 18px; border-radius: 12px; border: 1px solid var(--border); }
+        .box h3 { margin: 0 0 15px 0; font-size: 15px; font-weight: 800; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        
+        button { font-family: 'Manrope', sans-serif; color: white; background: #444; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 700; font-size: 13px; width: 100%; margin-bottom: 8px; }
+        button:hover { background: #555; }
+        button.action { background: var(--primary); }
+        button.action:hover { background: var(--primary-hover); }
+        button.active { background: #fff !important; color: #000 !important; }
+        button.record { background: #10b981; font-size: 15px; font-weight: 800; padding: 16px; text-transform: uppercase; }
+        button.record:hover { background: #059669; }
+
+        input[type="text"], input[type="file"], input[type="range"], input[type="color"], select { width: 100%; box-sizing: border-box; margin-bottom: 12px; font-family: 'Manrope', sans-serif; }
+        input[type="text"], select { background: #111; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 8px; outline: none; }
+        
+        .row { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; font-size: 13px; }
+        .row label { width: 110px; flex-shrink: 0; opacity: 0.9; }
+
+        #workspace { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; padding: 20px; position: relative; }
+        #map-wrapper { position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.5); background: #111; border-radius: 8px; overflow: hidden; transition: 0.3s; }
+        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        .ratio-16-9 { width: 100%; max-width: 1366px; aspect-ratio: 16 / 9; }
+        .ratio-9-16 { height: 100%; max-height: 850px; aspect-ratio: 9 / 16; }
+        
+        #recording-overlay { display: none; position: absolute; top: 30px; right: 30px; background: rgba(220, 38, 38, 0.95); padding: 10px 24px; border-radius: 20px; font-weight: 800; font-size: 16px; z-index: 1000; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .hint { font-size: 12px; color: #aaa; display: block; margin-bottom: 10px; line-height: 1.5; }
+        .highlight { border-color: var(--primary) !important; box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+
+        .mapboxgl-ctrl-geocoder { width: 100% !important; max-width: 100% !important; background: #111 !important; border: 1px solid var(--border); border-radius: 8px; box-shadow: none !important; }
+        .mapboxgl-ctrl-geocoder--input { color: #fff !important; font-family: 'Manrope', sans-serif; }
+
+        .timeline-container { position: relative; height: 30px; margin: 15px 0 5px 0; }
+        .timeline-track { position: absolute; top: 12px; height: 6px; background: #444; border-radius: 3px; width: 100%; }
+        .timeline-fill { position: absolute; top: 12px; height: 6px; background: var(--primary); border-radius: 3px; pointer-events: none; }
+        .dual-range { position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; -webkit-appearance: none; background: transparent; margin: 0; height: 30px;}
+        .dual-range::-webkit-slider-thumb { pointer-events: all; position: relative; z-index: 1; -webkit-appearance: none; width: 18px; height: 18px; background: #fff; border-radius: 50%; cursor: pointer; box-shadow: 0 0 5px rgba(0,0,0,0.5); margin-top: -6px; }
+        .dual-range::-webkit-slider-runnable-track { background: transparent; height: 6px; }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div class="header">
+            <h2>AN VIET MAP STUDIO V8.0</h2>
+        </div>
+
+        <div class="box">
+            <h3>🔍 Tìm Kiếm Vị Trí</h3>
+            <div id="geocoder-container"></div>
+        </div>
+        
+        <div class="box">
+            <h3>1. Khung Hình</h3>
+            <div style="display: flex; gap: 8px;">
+                <button id="btn-16-9" class="active">16:9 Ngang</button>
+                <button id="btn-9-16">9:16 Dọc</button>
+            </div>
+            <div class="row" style="margin-top: 10px;">
+                <input type="checkbox" id="toggle-labels" checked style="width:auto; margin:0 8px 0 0;">
+                <label for="toggle-labels" style="width:auto;">Chữ địa danh mặc định</label>
+            </div>
+        </div>
+
+        <div class="box" id="box-line">
+            <h3>2. Vẽ Tuyến Đường (Lines)</h3>
+            <button id="btn-draw-line" class="action">Bắt đầu vẽ Tuyến đường</button>
+            
+            <div id="editor-line" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; display: none;">
+                <div class="row" style="margin-bottom: 15px;">
+                    <label style="width: 80px;">Hiệu ứng:</label>
+                    <select id="edit-line-preset" style="margin-bottom: 0;">
+                        <option value="1">1. Đứt trứng (Glow & Mặc định)</option>
+                        <option value="2">2. Đường đổi màu (Đuổi liên tục)</option>
+                        <option value="3">3. LED đứt chạy (Không nét nền)</option>
+                    </select>
+                </div>
+
+                <div class="row" id="wrap-color1"><label id="lbl-color1">Màu chính:</label><input type="color" id="edit-line-color1"></div>
+                <div class="row" id="wrap-color2" style="display:none;"><label>Màu phụ (Đuổi):</label><input type="color" id="edit-line-color2"></div>
+                
+                <div class="row"><label>Độ dày:</label><input type="range" id="edit-line-width" min="3" max="25"></div>
+                <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa đối tượng này</button>
+            </div>
+        </div>
+
+        <div class="box" id="box-shape">
+            <h3>3. Vẽ Khu Vực (Shape)</h3>
+            <button id="btn-draw-shape" class="action">Bắt đầu vẽ Khu vực</button>
+            <div id="editor-shape" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; display: none;">
+                <div class="row"><label>Màu khối:</label><input type="color" id="edit-shape-color"></div>
+                <div class="row"><label>Độ mờ:</label><input type="range" id="edit-shape-opacity" min="10" max="100"></div>
+                <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa đối tượng này</button>
+            </div>
+        </div>
+
+        <div class="box" id="box-marker">
+            <h3>4. Chữ & Hình Ảnh</h3>
+            <input type="text" id="marker-text" placeholder="Gõ nội dung Text...">
+            <input type="file" id="marker-file" accept="image/*">
+            <button id="btn-add-marker" class="action">📍 Chấm điểm trên Map</button>
+            
+            <div id="editor-marker" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; display: none;">
+                <input type="text" id="edit-marker-text">
+                <div class="row"><label>Kích thước:</label><input type="range" id="edit-marker-scale" min="0.5" max="5" step="0.1"></div>
+                <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa đối tượng này</button>
+            </div>
+        </div>
+
+        <div class="box" id="box-timeline" style="display: none; border-color: var(--primary);">
+            <h3>⏱️ 5. Timeline Xuất Hiện</h3>
+            <span class="hint" id="timeline-hint" style="color: var(--primary); font-weight: 600;">Đang cấu hình: ...</span>
+            
+            <div class="timeline-container">
+                <div class="timeline-track"></div>
+                <div class="timeline-fill" id="tl-fill"></div>
+                <input type="range" id="edit-timeline-start" class="dual-range" min="0" step="0.1" value="0">
+                <input type="range" id="edit-timeline-end" class="dual-range" min="0" step="0.1" value="10">
+            </div>
+            <div style="text-align: center; color: var(--primary); font-weight: bold; margin-bottom: 5px;" id="time-label">0.0s - 10.0s</div>
+        </div>
+
+        <div class="box">
+            <h3>6. Kịch Bản & Quay Video</h3>
+            <button id="btn-add-kf" style="background: #252525; border: 1px solid #555;">+ Lưu Góc Máy Đang Xem</button>
+            <div id="kf-list" style="max-height: 90px; overflow-y:auto; margin-bottom:15px; font-size:12px; color:#aaa; background:#111; padding:10px; border-radius:8px;"></div>
+            
+            <div class="row">
+                <label>Tg Di Chuyển:</label>
+                <select id="video-duration">
+                    <option value="5000">5 Giây</option>
+                    <option value="8000">8 Giây</option>
+                    <option value="10000" selected>10 Giây</option>
+                    <option value="15000">15 Giây</option>
+                </select>
+            </div>
+            <span class="hint">* Cam nội suy Ease-In (Khởi động chậm, bay nhanh về cuối). Giữ thêm 2s khi kết thúc.</span>
+            <button id="btn-record" class="record">🎬 XUẤT VIDEO (.MP4)</button>
+        </div>
+    </div>
+
+    <div id="workspace">
+        <div id="map-wrapper" class="ratio-16-9">
+            <div id="map"></div>
+        </div>
+        <div id="recording-overlay">● ĐANG QUAY: 0.0s</div>
+    </div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYW52aWV0IiwiYSI6ImNtcjh5ajh0ajAyYTAyeXNlaWxjZDI2bG0ifQ.RQ7VjsqIxSBFgYdLByo1pw';
+
+        let map, draw;
+        let state = { line: [], shape: [], marker: [] };
+        let keyframes = [];
+        let activeObj = null; 
+        let isAddingMarker = false;
+        let loadedImgBase64 = null;
+        let isRecording = false;
+
+        map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/satellite-streets-v12',
+            center: [106.9950, 20.9485],
+            zoom: 15.5, pitch: 45, bearing: 0,
+            preserveDrawingBuffer: true,
+            fog: true 
+        });
+
+        draw = new MapboxDraw({ displayControlsDefault: false });
+        map.addControl(draw);
+
+        document.getElementById('geocoder-container').appendChild(
+            new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl: mapboxgl, placeholder: 'Tìm địa điểm...', marker: false }).onAdd(map)
+        );
+
+        map.on('load', () => {
+            // FIX: Bầu trời tươi, trong xanh rực rỡ và bão hòa màu sắc
+            map.setFog({
+                'color': '#bde1ff', // Xanh lam nhạt đường chân trời
+                'high-color': '#0062ff', // Xanh đậm đỉnh trời
+                'horizon-blend': 0.1,
+                'space-color': '#4293ff',
+                'star-intensity': 0.0
+            });
+            map.addLayer({ 'id': 'sky', 'type': 'sky', 'paint': { 'sky-type': 'atmosphere', 'sky-atmosphere-sun': [0.0, 90.0], 'sky-atmosphere-sun-intensity': 20 } });
+            
+            if (map.getLayer('satellite')) {
+                map.setPaintProperty('satellite', 'raster-saturation', 0.25); 
+                map.setPaintProperty('satellite', 'raster-contrast', 0.15);
+            }
+
+            map.addSource('src-shapes', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({ 'id': 'lyr-shape-fill', 'type': 'fill', 'source': 'src-shapes', 'paint': { 'fill-color': ['get', 'color'], 'fill-opacity': ['*', ['get', 'baseOpacity'], ['get', 'fadeOpacity']] } });
+            map.addLayer({ 'id': 'lyr-shape-border', 'type': 'line', 'source': 'src-shapes', 'paint': { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': ['get', 'fadeOpacity'] } });
+
+            // ================= CẤU TRÚC LAYER MỚI CHO 3 PRESET GIAO THÔNG =================
+            map.addSource('src-lines', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+
+            // [PRESET 1]: Nét đứt trứng & Mặc định
+            map.addLayer({ 'id': 'p1-glow-out', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'preset'], 1], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color1'], 'line-width': ['*', ['get', 'width'], 4], 'line-blur': 20, 'line-opacity': ['*', 0.4, ['get', 'fadeOpacity']] } });
+            map.addLayer({ 'id': 'p1-glow-in', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'preset'], 1], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color1'], 'line-width': ['*', ['get', 'width'], 2], 'line-blur': 8, 'line-opacity': ['*', 0.7, ['get', 'fadeOpacity']] } });
+            map.addLayer({ 'id': 'p1-core', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'preset'], 1], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color1'], 'line-width': ['get', 'width'], 'line-opacity': ['get', 'fadeOpacity'] } });
+            map.addLayer({ 'id': 'p1-dash', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'preset'], 1], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': '#ffffff', 'line-width': ['*', ['get', 'width'], 0.4], 'line-opacity': ['get', 'fadeOpacity'] } });
+
+            // [PRESET 2]: Đường đổi màu luân phiên (Color 1 -> Color 2 chạy)
+            map.addLayer({ 'id': 'p2-base', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'preset'], 2], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color1'], 'line-width': ['get', 'width'], 'line-opacity': ['get', 'fadeOpacity'] } });
+            map.addLayer({ 'id': 'p2-chase', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'preset'], 2], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color2'], 'line-width': ['get', 'width'], 'line-opacity': ['get', 'fadeOpacity'] } }); // Nét đuổi đè lên
+
+            // [PRESET 3]: LED Đứt Không Lõi
+            map.addLayer({ 'id': 'p3-glow', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'preset'], 3], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color1'], 'line-width': ['*', ['get', 'width'], 3], 'line-blur': 15, 'line-opacity': ['*', 0.7, ['get', 'fadeOpacity']] } });
+            map.addLayer({ 'id': 'p3-dash', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'preset'], 3], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color1'], 'line-width': ['get', 'width'], 'line-opacity': ['get', 'fadeOpacity'] } });
+
+
+            map.addSource('src-markers', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({ 'id': 'lyr-markers', 'type': 'symbol', 'source': 'src-markers', 'layout': { 'icon-image': ['get', 'imgId'], 'icon-size': ['get', 'scale'], 'icon-allow-overlap': true, 'icon-ignore-placement': true }, 'paint': { 'icon-opacity': ['get', 'fadeOpacity'] } });
+
+            // --- ANIMATION LOOP CHO 3 PRESET ---
+            // Hàm Helper nội suy thuật toán đẩy Dasharray (Tạo hiệu ứng di chuyển)
+            function getDashArr(dash, gap, currStep) {
+                const total = dash + gap;
+                let s = currStep % total;
+                if (s <= gap) return [0, s, dash, gap - s];
+                else return [s - gap, gap, dash - (s - gap), 0];
+            }
+
+            let step = 0;
+            function animateAllLines() {
+                step += 0.5; // Tốc độ Master
+                
+                // P1: Chấm đứt màu trắng (Dash 2, Gap 6)
+                if (map.getLayer('p1-dash')) map.setPaintProperty('p1-dash', 'line-dasharray', getDashArr(2, 6, step * 2));
+                
+                // P2: Đuổi màu, Vệt màu cực dài chạy đè lên Base (Dash 40, Gap 40)
+                if (map.getLayer('p2-chase')) map.setPaintProperty('p2-chase', 'line-dasharray', getDashArr(40, 40, step * 2));
+                
+                // P3: LED đứt đoạn lớn (Dash 8, Gap 8)
+                if (map.getLayer('p3-dash')) map.setPaintProperty('p3-dash', 'line-dasharray', getDashArr(8, 8, step * 1.5));
+                if (map.getLayer('p3-glow')) map.setPaintProperty('p3-glow', 'line-dasharray', getDashArr(8, 8, step * 1.5)); // Glow đuổi theo Dash
+
+                requestAnimationFrame(animateAllLines);
+            }
+            animateAllLines();
+        });
+
+        // Bắt click chọn Đối tượng
+        map.on('click', (e) => {
+            if (isAddingMarker || isRecording) return;
+            let features = map.queryRenderedFeatures(e.point, { layers: ['p1-core', 'p2-base', 'p3-dash', 'lyr-shape-fill', 'lyr-markers'] });
+            
+            document.querySelectorAll('.box').forEach(b => b.classList.remove('highlight'));
+            document.getElementById('editor-line').style.display = 'none';
+            document.getElementById('editor-shape').style.display = 'none';
+            document.getElementById('editor-marker').style.display = 'none';
+            document.getElementById('box-timeline').style.display = 'none';
+            activeObj = null;
+
+            if (features.length > 0) {
+                let feat = features[0];
+                if (['p1-core', 'p2-base', 'p3-dash'].includes(feat.layer.id)) selectObject('line', feat.properties.id);
+                else if (feat.layer.id === 'lyr-shape-fill') selectObject('shape', feat.properties.id);
+                else if (feat.layer.id === 'lyr-markers') selectObject('marker', feat.properties.id);
+            }
+        });
+
+        function selectObject(type, id) {
+            activeObj = { type, id };
+            document.getElementById('box-timeline').style.display = 'block';
+            let item = state[type].find(x => x.properties.id === id);
+            if (!item) return;
+
+            if (type === 'line') {
+                document.getElementById('box-line').classList.add('highlight');
+                document.getElementById('editor-line').style.display = 'block';
+                
+                document.getElementById('edit-line-preset').value = item.properties.preset;
+                document.getElementById('edit-line-color1').value = item.properties.color1;
+                document.getElementById('edit-line-color2').value = item.properties.color2;
+                document.getElementById('edit-line-width').value = item.properties.width;
+                document.getElementById('timeline-hint').innerText = `Đang cấu hình: Tuyến Giao Thông`;
+                
+                // Logic hiển thị Color Picker theo preset
+                let p = item.properties.preset;
+                document.getElementById('lbl-color1').innerText = p === 1 ? 'Màu chính:' : (p === 2 ? 'Màu nền:' : 'Màu dải LED:');
+                document.getElementById('wrap-color2').style.display = p === 2 ? 'flex' : 'none';
+
+            } else if (type === 'shape') {
+                document.getElementById('box-shape').classList.add('highlight'); document.getElementById('editor-shape').style.display = 'block';
+                document.getElementById('edit-shape-color').value = item.properties.color; document.getElementById('edit-shape-opacity').value = item.properties.baseOpacity * 100;
+                document.getElementById('timeline-hint').innerText = `Đang cấu hình: Khối khu vực`;
+            } else if (type === 'marker') {
+                document.getElementById('box-marker').classList.add('highlight'); document.getElementById('editor-marker').style.display = 'block';
+                document.getElementById('edit-marker-text').value = item.properties.text || ''; document.getElementById('edit-marker-scale').value = item.properties.scale;
+                document.getElementById('timeline-hint').innerText = `Đang cấu hình: Hình ảnh / Chữ`;
+            }
+
+            let maxT = parseInt(document.getElementById('video-duration').value) / 1000;
+            sliderStart.max = maxT; sliderEnd.max = maxT;
+            sliderStart.value = item.properties.start; sliderEnd.value = item.properties.end;
+            updateTimelineUI();
+        }
+
+        // ================= XỬ LÝ SỰ KIỆN CẬP NHẬT =================
+        const sliderStart = document.getElementById('edit-timeline-start');
+        const sliderEnd = document.getElementById('edit-timeline-end');
+        
+        function updateTimelineUI() {
+            if (!activeObj) return;
+            let maxT = parseInt(document.getElementById('video-duration').value) / 1000;
+            let s = parseFloat(sliderStart.value); let e = parseFloat(sliderEnd.value);
+            if (s > e - 0.5) { s = e - 0.5; sliderStart.value = s; } 
+            
+            document.getElementById('tl-fill').style.left = (s / maxT * 100) + '%';
+            document.getElementById('tl-fill').style.width = ((e - s) / maxT * 100) + '%';
+            document.getElementById('time-label').innerText = `${s.toFixed(1)}s - ${e.toFixed(1)}s`;
+            
+            updateProp(state[activeObj.type], activeObj.id, 'start', s); updateProp(state[activeObj.type], activeObj.id, 'end', e);
+        }
+
+        sliderStart.addEventListener('input', updateTimelineUI); sliderEnd.addEventListener('input', updateTimelineUI);
+
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (activeObj) {
+                    state[activeObj.type] = state[activeObj.type].filter(x => x.properties.id !== activeObj.id);
+                    document.getElementById(`editor-${activeObj.type}`).style.display = 'none';
+                    document.getElementById('box-timeline').style.display = 'none';
+                    activeObj = null; refreshMapData();
+                }
+            });
+        });
+
+        document.getElementById('btn-draw-line').addEventListener('click', () => draw.changeMode('draw_line_string'));
+        document.getElementById('btn-draw-shape').addEventListener('click', () => draw.changeMode('draw_polygon'));
+
+        map.on('draw.create', (e) => {
+            const feat = e.features[0]; setTimeout(() => draw.delete(feat.id), 10);
+            let vDur = parseInt(document.getElementById('video-duration').value) / 1000;
+            const id = 'geo-' + Date.now();
+
+            if (feat.geometry.type === 'LineString') {
+                // Tạo Line với Cấu trúc State chuẩn hỗ trợ Preset
+                state.line.push({ type: 'Feature', geometry: feat.geometry, properties: { id, preset: 1, color1: '#ff3300', color2: '#00ffff', width: 6, start: 0, end: vDur, fadeOpacity: 1 } });
+                selectObject('line', id);
+            } else {
+                state.shape.push({ type: 'Feature', geometry: feat.geometry, properties: { id, color: '#00ffff', baseOpacity: 0.4, start: 0, end: vDur, fadeOpacity: 1 } });
+                selectObject('shape', id);
+            }
+            refreshMapData();
+        });
+
+        // Chỉnh sửa thuộc tính Line
+        document.getElementById('edit-line-preset').addEventListener('change', (e) => {
+            let p = parseInt(e.target.value);
+            document.getElementById('lbl-color1').innerText = p === 1 ? 'Màu chính:' : (p === 2 ? 'Màu nền:' : 'Màu dải LED:');
+            document.getElementById('wrap-color2').style.display = p === 2 ? 'flex' : 'none';
+            updateProp(state.line, activeObj.id, 'preset', p);
+        });
+        document.getElementById('edit-line-color1').addEventListener('input', (e) => updateProp(state.line, activeObj.id, 'color1', e.target.value));
+        document.getElementById('edit-line-color2').addEventListener('input', (e) => updateProp(state.line, activeObj.id, 'color2', e.target.value));
+        document.getElementById('edit-line-width').addEventListener('input', (e) => updateProp(state.line, activeObj.id, 'width', parseFloat(e.target.value)));
+        
+        // Shape & Marker
+        document.getElementById('edit-shape-color').addEventListener('input', (e) => updateProp(state.shape, activeObj.id, 'color', e.target.value));
+        document.getElementById('edit-shape-opacity').addEventListener('input', (e) => updateProp(state.shape, activeObj.id, 'baseOpacity', parseFloat(e.target.value)/100));
+
+        function createTextImage(text) {
+            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+            ctx.font = "800 60px Manrope"; const metrics = ctx.measureText(text);
+            canvas.width = metrics.width + 40; canvas.height = 100;
+            ctx.font = "800 60px Manrope"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillStyle = "white"; ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 10;
+            ctx.fillText(text, canvas.width/2, canvas.height/2);
+            return canvas.toDataURL();
+        }
+
+        document.getElementById('marker-file').addEventListener('change', (e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (ev) => loadedImgBase64 = ev.target.result; reader.readAsDataURL(file); } });
+        document.getElementById('btn-add-marker').addEventListener('click', () => { isAddingMarker = true; document.getElementById('btn-add-marker').innerText = '🎯 Click lên Map...'; map.getCanvas().style.cursor = 'crosshair'; });
+
+        map.on('click', (e) => {
+            if (!isAddingMarker) return;
+            const id = 'mk-' + Date.now(); const text = document.getElementById('marker-text').value; let imgData = loadedImgBase64 || (text ? createTextImage(text) : null);
+            if (imgData) {
+                const img = new Image(); img.onload = () => { map.addImage(id, img);
+                    let vDur = parseInt(document.getElementById('video-duration').value) / 1000;
+                    state.marker.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] }, properties: { id, imgId: id, scale: text ? 0.5 : 0.2, text: text, start: 0, end: vDur, fadeOpacity: 1 } });
+                    refreshMapData(); selectObject('marker', id);
+                }; img.src = imgData;
+            }
+            isAddingMarker = false; map.getCanvas().style.cursor = '';
+            document.getElementById('btn-add-marker').innerText = '📍 Chấm điểm trên Map'; document.getElementById('marker-text').value = ''; document.getElementById('marker-file').value = ''; loadedImgBase64 = null;
+        });
+
+        document.getElementById('edit-marker-text').addEventListener('input', (e) => { let item = state.marker.find(x => x.properties.id === activeObj.id); if (item) { item.properties.text = e.target.value; const img = new Image(); img.onload = () => { if (map.hasImage(item.properties.imgId)) map.removeImage(item.properties.imgId); map.addImage(item.properties.imgId, img); refreshMapData(); }; img.src = createTextImage(e.target.value); } });
+        document.getElementById('edit-marker-scale').addEventListener('input', (e) => updateProp(state.marker, activeObj.id, 'scale', parseFloat(e.target.value)));
+
+        function updateProp(collection, id, prop, val) { let item = collection.find(x => x.properties.id === id); if (item) { item.properties[prop] = val; refreshMapData(); } }
+        function applyFade(list, currentTime) {
+            return list.map(m => {
+                let op = 1; const fadeDur = 0.5; 
+                if (currentTime >= 0) {
+                    if (currentTime < m.properties.start || currentTime > m.properties.end) op = 0;
+                    else if (currentTime - m.properties.start < fadeDur) op = (currentTime - m.properties.start) / fadeDur;
+                    else if (m.properties.end - currentTime < fadeDur) op = (m.properties.end - currentTime) / fadeDur;
+                }
+                return { ...m, properties: { ...m.properties, fadeOpacity: Math.max(0, Math.min(1, op)) } };
+            });
+        }
+        function refreshMapData(currentTime = -1) {
+            map.getSource('src-lines').setData({ type: 'FeatureCollection', features: applyFade(state.line, currentTime) });
+            map.getSource('src-shapes').setData({ type: 'FeatureCollection', features: applyFade(state.shape, currentTime) });
+            map.getSource('src-markers').setData({ type: 'FeatureCollection', features: applyFade(state.marker, currentTime) });
+        }
+
+        // ================= KỊCH BẢN CAMERA XUẤT VIDEO (CUBIC EASE-IN & BỎ BLUR) =================
+        document.getElementById('btn-add-kf').addEventListener('click', () => {
+            keyframes.push({ center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() });
+            let list = document.getElementById('kf-list'); list.innerHTML = '';
+            keyframes.forEach((k, i) => list.innerHTML += `<div style="padding:5px 0; border-bottom:1px solid #222;">🎬 Góc máy ${i + 1}</div>`);
+        });
+
+        function lerp(start, end, amt) { return (1 - amt) * start + amt * end; }
+        
+        document.getElementById('btn-record').addEventListener('click', async () => {
+            if (keyframes.length < 2) return alert("Cần ít nhất 2 góc máy!");
+            isRecording = true;
+
+            const is169 = document.getElementById('btn-16-9').classList.contains('active');
+            const targetWidth = is169 ? 1920 : 1080; const targetHeight = is169 ? 1080 : 1920;
+            
+            const exportCanvas = document.createElement('canvas'); exportCanvas.width = targetWidth; exportCanvas.height = targetHeight;
+            const exportCtx = exportCanvas.getContext('2d');
+            const stream = exportCanvas.captureStream(60);
+            
+            let mediaRecorder;
+            try { mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 20000000 }); } 
+            catch(e) { mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 20000000 }); }
+            
+            const chunks = [];
+            const durationMs = parseInt(document.getElementById('video-duration').value);
+            const holdMs = 2000; 
+            const totalExportMs = durationMs + holdMs; 
+
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                const url = URL.createObjectURL(new Blob(chunks, { type: mediaRecorder.mimeType }));
+                const a = document.createElement('a'); a.href = url; a.download = `AnViet-Project.mp4`; a.click();
+                document.getElementById('recording-overlay').style.display = 'none'; document.getElementById('btn-record').disabled = false;
+                isRecording = false; refreshMapData(); 
+            };
+
+            mediaRecorder.start();
+            document.getElementById('btn-record').disabled = true; document.getElementById('recording-overlay').style.display = 'block';
+
+            const startTime = Date.now();
+            const totalSegments = keyframes.length - 1;
+
+            function renderFrame() {
+                let elapsed = Date.now() - startTime;
+                if (elapsed > totalExportMs) elapsed = totalExportMs;
+
+                document.getElementById('recording-overlay').innerText = `● ĐANG QUAY: ${(elapsed / 1000).toFixed(1)}s`;
+                refreshMapData(elapsed / 1000);
+
+                let camElapsed = Math.min(elapsed, durationMs);
+                let progress = camElapsed / durationMs;
+                
+                // THUẬT TOÁN EASE-IN: Hàm mũ 3 (Cubic) giúp camera xuất phát rất chậm và tăng tốc vút đi ở cuối
+                let easedProgress = Math.pow(progress, 3); 
+
+                let globalSegment = easedProgress * totalSegments;
+                let currentSegment = Math.floor(globalSegment);
+                if (currentSegment >= totalSegments) currentSegment = totalSegments - 1;
+                let segmentProgress = globalSegment - currentSegment;
+                
+                let kf1 = keyframes[currentSegment]; let kf2 = keyframes[currentSegment + 1];
+                map.jumpTo({ center: [lerp(kf1.center.lng, kf2.center.lng, segmentProgress), lerp(kf1.center.lat, kf2.center.lat, segmentProgress)], zoom: lerp(kf1.zoom, kf2.zoom, segmentProgress), pitch: lerp(kf1.pitch, kf2.pitch, segmentProgress), bearing: lerp(kf1.bearing, kf2.bearing, segmentProgress) });
+
+                // Render trực tiếp cực sắc nét (Loại bỏ hoàn toàn Motion Blur)
+                exportCtx.drawImage(map.getCanvas(), 0, 0, targetWidth, targetHeight);
+
+                // HIỆU ỨNG VIGNETTE MỜ NHẸ GÓC (Tăng độ tập trung điện ảnh)
+                const gradient = exportCtx.createRadialGradient(targetWidth/2, targetHeight/2, targetWidth * 0.45, targetWidth/2, targetHeight/2, targetWidth * 0.75);
+                gradient.addColorStop(0, 'rgba(0,0,0,0)'); gradient.addColorStop(1, 'rgba(0,0,0,0.5)');
+                exportCtx.fillStyle = gradient; exportCtx.fillRect(0, 0, targetWidth, targetHeight);
+
+                if (elapsed < totalExportMs) requestAnimationFrame(renderFrame);
+                else mediaRecorder.stop();
+            }
+            renderFrame();
+        });
+
+        document.getElementById('btn-16-9').addEventListener('click', (e) => { document.getElementById('btn-9-16').classList.remove('active'); e.target.classList.add('active'); document.getElementById('map-wrapper').className = 'ratio-16-9'; setTimeout(()=>map.resize(), 100); });
+        document.getElementById('btn-9-16').addEventListener('click', (e) => { document.getElementById('btn-16-9').classList.remove('active'); e.target.classList.add('active'); document.getElementById('map-wrapper').className = 'ratio-9-16'; setTimeout(()=>map.resize(), 100); });
+        document.getElementById('video-duration').addEventListener('change', () => { if(activeObj) { selectObject(activeObj.type, activeObj.id); } });
+        document.getElementById('toggle-labels').addEventListener('change', (e) => { map.getStyle().layers.forEach(l => { if (l.type === 'symbol' && l.id !== 'lyr-markers') map.setLayoutProperty(l.id, 'visibility', e.target.checked ? 'visible' : 'none'); }); });
+    </script>
+</body>
+</html>
