@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>An Viet Map Studio - Cinematic 4K (V8.0)</title>
+    <title>An Viet Map Studio - Native 4K Editor (Absolute WYSIWYG)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -16,86 +16,69 @@
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
 
     <style>
-        :root {
-            --bg-dark: #070709; --panel-bg: #111116; --panel-sub: #1a1a24;
-            --text: #f0f0f5; --border: #2a2a35; --primary: #3b82f6; --primary-hover: #2563eb;
-            --cobalt-dark: #0a192f; --cobalt-deep: #112240; --cobalt-main: #1d4ed8; --cobalt-light: #2563eb; --cobalt-sky: #60a5fa;
-        }
-
+        :root { --bg-dark: #12121a; --panel-bg: #1a1a24; --panel-sub: #22222e; --text: #ffffff; --border: #333344; --cobalt-dark: #0a192f; --cobalt-main: #2563eb; --cobalt-sky: #60a5fa; }
         body { margin: 0; display: flex; height: 100vh; background-color: var(--bg-dark); color: var(--text); font-family: 'Manrope', sans-serif; font-size: 14px; overflow: hidden; }
         
-        #sidebar { width: 400px; background: var(--panel-bg); display: flex; flex-direction: column; border-right: 1px solid var(--border); z-index: 100; overflow-y: auto; padding: 20px; gap: 20px; box-sizing: border-box; }
+        #sidebar { width: 360px; background: var(--panel-bg); display: flex; flex-direction: column; border-right: 1px solid var(--border); z-index: 100; overflow-y: auto; padding: 25px 20px; gap: 20px; box-sizing: border-box; }
+        #main-area { flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0; }
         
+        #top-bar { height: 60px; background: var(--panel-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; gap: 15px; }
+        
+        #bottom-timeline { height: 80px; background: var(--panel-bg); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; padding: 0 20px; gap: 20px; flex-shrink: 0; z-index: 100;}
+        .slider-group { display: flex; align-items: center; gap: 15px; width: 100%; max-width: 800px; background: var(--panel-sub); padding: 12px 25px; border-radius: 12px; border: 1px solid var(--cobalt-main); }
+        .slider-group label { font-weight: 800; color: var(--cobalt-sky); width: 120px; }
+        .slider-group input[type="range"] { flex: 1; accent-color: var(--cobalt-main); height: 8px; cursor: pointer; margin: 0; }
+        .slider-val { width: 45px; text-align: right; font-weight: 800; font-size: 14px; color: #fff; }
+        #timeline-empty { color: #888; font-weight: 600; font-style: italic; }
+
         .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        .header h2 { margin: 0; color: var(--cobalt-sky); font-size: 21px; font-weight: 800; letter-spacing: 1px; }
+        .header h2 { margin: 0; color: var(--cobalt-sky); font-size: 20px; font-weight: 800; letter-spacing: 1px; }
+        .box { background: var(--panel-sub); padding: 20px 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .box h3 { margin: 0 0 18px 0; font-size: 14px; font-weight: 800; color: var(--cobalt-sky); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         
-        .box { background: var(--panel-sub); padding: 18px; border-radius: 12px; border: 1px solid var(--border); }
-        .box h3 { margin: 0 0 15px 0; font-size: 15px; font-weight: 800; color: var(--cobalt-sky); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-        
-        button { font-family: 'Manrope', sans-serif; color: white; background: #444; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 700; font-size: 13px; width: 100%; margin-bottom: 8px; }
-        button.action { background: var(--cobalt-main); } button.action:hover { background: var(--cobalt-light); }
-        button.record { background: #10b981; font-size: 15px; font-weight: 800; padding: 16px; text-transform: uppercase; }
-        button.record:hover { background: #059669; }
+        button { font-family: 'Manrope', sans-serif; color: white; background: #333344; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 700; font-size: 13px; width: 100%; margin-bottom: 8px; }
+        button.action { background: var(--cobalt-main); } button.action:hover { background: #1d4ed8; }
+        button.record { background: #10b981; font-size: 15px; font-weight: 800; padding: 10px 24px; text-transform: uppercase; width: auto; margin: 0; } button.record:hover { background: #059669; }
         button.active { background: #fff !important; color: #000 !important; font-weight: 800; }
         
-        .ur-row { display: flex; gap: 8px; margin-top: 5px; margin-bottom: 15px;}
-        .ur-row button { flex: 1; padding: 8px; font-size: 12px; background: #222230; border: 1px solid #333344; color: #aaa; margin:0;}
-        .ur-row button:hover { background: #333344; color: #fff; }
-
-        input[type="text"], input[type="file"], input[type="range"], input[type="color"], input[type="number"], select { width: 100%; box-sizing: border-box; margin-bottom: 12px; font-family: 'Manrope', sans-serif; font-weight: 600; }
+        input[type="text"], input[type="file"], input[type="range"], input[type="color"], input[type="number"], select { width: 100%; box-sizing: border-box; margin-bottom: 15px; font-family: 'Manrope', sans-serif; font-weight: 600; }
         input[type="text"], input[type="number"], select { background: #000; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 8px; }
+        .row { display: flex; gap: 15px; align-items: center; margin-bottom: 15px; font-size: 13px; } .row label { width: 110px; flex-shrink: 0; opacity: 0.9; }
         
-        .row { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; font-size: 13px; }
-        .row label { width: 110px; flex-shrink: 0; opacity: 0.9; }
-
-        /* Workspace & Map */
-        #workspace { flex: 1; position: relative; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #workspace { flex: 1; background: var(--bg-dark); display: flex; align-items: center; justify-content: center; position: relative; padding: 20px; box-sizing: border-box; min-height: 0; overflow: hidden; }
+        
+        /* Map-wrapper giờ đây sẽ luôn mang kích thước 4K và được thu phóng bằng CSS Scale */
+        #map-wrapper { position: absolute; background: #000; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.5); transform-origin: center center; }
         #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         
-        /* Mặt nạ Đen che viền khi chọn dọc 9:16 */
-        .mask { position: absolute; background: rgba(0,0,0,0.9); z-index: 50; transition: 0.3s; pointer-events: none; }
-        #mask-left { top: 0; bottom: 0; left: 0; width: 0; border-right: 2px solid var(--cobalt-main); }
-        #mask-right { top: 0; bottom: 0; right: 0; width: 0; border-left: 2px solid var(--cobalt-main); }
+        /* Đã di dời popup & overlay ra khỏi map-wrapper để không bị thu nhỏ */
+        #recording-overlay { display: none; position: absolute; top: 30px; right: 30px; background: rgba(220, 38, 38, 0.95); padding: 10px 24px; border-radius: 20px; font-weight: 800; font-size: 16px; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         
-        #recording-overlay { display: none; position: absolute; top: 30px; right: 30px; background: rgba(220, 38, 38, 0.95); padding: 10px 24px; border-radius: 20px; font-weight: 800; font-size: 16px; z-index: 1000; }
-        .highlight { border-color: var(--cobalt-sky) !important; box-shadow: 0 0 15px rgba(96, 165, 250, 0.2); }
-
-        .mapboxgl-ctrl-geocoder { width: 100% !important; max-width: 100% !important; background: #000 !important; border: 1px solid var(--border); border-radius: 8px; box-shadow: none !important; }
-        .mapboxgl-ctrl-geocoder--input { color: #fff !important; font-family: 'Manrope', sans-serif; }
-
-        /* Marker HTML - Khung chọn */
-        .custom-html-marker { cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .custom-html-marker img { border-radius: 8px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); transition: 0.2s; }
-        .custom-html-marker .marker-label { background: rgba(0,0,0,0.85); color: white; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; margin-top: 6px; border: 1px solid #444; }
+        .mapboxgl-ctrl-geocoder { width: 100% !important; max-width: 100% !important; background: var(--panel-bg) !important; border: 1px solid var(--border) !important; border-radius: 8px; box-shadow: none !important; display: block !important; } 
+        .mapboxgl-ctrl-geocoder--input { color: #fff !important; font-family: 'Manrope', sans-serif; padding: 10px 40px !important; height: 42px !important; margin: 0 !important; background: transparent !important; }
         
-        /* Hiệu ứng Đang được chọn (Selection Box) */
-        .custom-html-marker.selected::before {
-            content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px;
-            border: 2px dashed #00ffcc; border-radius: 12px; animation: dashSpin 10s linear infinite; pointer-events: none;
+        .custom-html-marker { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; position: relative; border: 2px solid transparent; border-radius: 6px; padding: 2px; transition: border-color 0.2s, opacity 0.2s; pointer-events: auto; cursor: pointer; box-sizing: border-box; transform-origin: center bottom; width: max-content; height: max-content; }
+        .custom-html-marker img { border-radius: 4px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6)); display: block; width: auto; }
+        .custom-html-marker.selected { border-color: #00ffcc; background: rgba(0, 255, 204, 0.15); box-shadow: 0 0 15px rgba(0,255,204,0.3); }
+        
+        .pin-marker { display: flex; align-items: center; justify-content: center; cursor: pointer; transition: filter 0.2s, border-color 0.2s, opacity 0.2s; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8)); transform-origin: center bottom; border: 2px solid transparent; border-radius: 50%; padding: 4px; pointer-events: auto; box-sizing: border-box; }
+        .pin-marker.selected { filter: drop-shadow(0 0 20px #00ffcc); border-color: #00ffcc; background: rgba(0, 255, 204, 0.15); }
+        
+        body.is-drawing .custom-html-marker,
+        body.is-drawing .pin-marker {
+            pointer-events: none !important; 
         }
-        @keyframes dashSpin { to { stroke-dashoffset: -1000; } }
 
-        /* Pin Location Trắng + Glow */
-        .pin-marker {
-            width: 44px; height: 44px;
-            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24c0-6.627-5.373-12-12-12zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z" fill="%23ffffff"/></svg>');
-            background-size: contain; background-repeat: no-repeat; background-position: center bottom;
-            transform-origin: center bottom;
-            filter: drop-shadow(0 0 12px rgba(255,255,255,0.8)); cursor: pointer;
-        }
-        .pin-marker.selected { filter: drop-shadow(0 0 20px #00ffcc); }
+        #popup-wrapper { position: absolute; bottom: 20px; right: 20px; background: rgba(26, 26, 36, 0.95); color: #fff; border: 2px solid var(--cobalt-main); border-radius: 12px; padding: 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.7); width: 300px; font-family: 'Manrope', sans-serif; z-index: 999; backdrop-filter: blur(8px); }
+        #popup-wrapper h4 { margin: 0 0 15px 0; color: var(--cobalt-sky); border-bottom: 1px solid var(--border); padding-bottom: 8px; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        /* Keyframe item */
-        .kf-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #222; }
-        .kf-item button { width: auto; margin: 0; padding: 4px 10px; font-size: 11px; background: var(--cobalt-main); }
+        .kf-item { display: flex; justify-content: space-between; align-items: center; background: #12121a; padding: 6px 10px; border-radius: 6px; margin-bottom: 6px; border: 1px solid #222; }
     </style>
 </head>
 <body>
 
     <div id="sidebar">
-        <div class="header">
-            <h2>AN VIET MAP STUDIO (V8.0)</h2>
-        </div>
+        <div class="header"><h2>MAP STUDIO (Native 4K Editor)</h2></div>
 
         <div class="box">
             <h3>🔍 Tìm Kiếm Nhanh</h3>
@@ -103,548 +86,610 @@
         </div>
         
         <div class="box">
-            <h3>1. Khung Hình & Layer</h3>
-            <div style="display: flex; gap: 8px;">
-                <button id="btn-16-9" class="active" style="background:var(--cobalt-deep);">16:9 Ngang (Youtube)</button>
-                <button id="btn-9-16" style="background:var(--cobalt-deep);">9:16 Dọc (Tiktok)</button>
-            </div>
-            <div class="row" style="margin-top: 10px;">
-                <input type="checkbox" id="toggle-labels" checked style="width:auto; margin:0 8px 0 0;">
-                <label for="toggle-labels" style="width:auto;">Gắn nhãn Mapbox gốc</label>
-            </div>
-        </div>
-
-        <div class="box" id="box-line">
-            <h3>2. Giao Thông (Line)</h3>
-            <div class="ur-row">
-                <button onclick="undo('line')">↩️ Undo</button>
-                <button onclick="redo('line')">↪️ Redo</button>
-            </div>
-            <button id="btn-draw-line" class="action">🛣️ Vẽ Cung đường mới</button>
-            <div id="editor-line" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; display: none;">
-                <div class="row">
-                    <label>Hiệu ứng:</label>
-                    <select id="edit-line-anim">
-                        <option value="Preset 1">Core Lõi + Dash chạy</option>
-                        <option value="Preset 2">Gradient Đuổi màu (Loop)</option>
-                        <option value="Preset 3">LED đứt đoạn chớp sáng</option>
-                    </select>
-                </div>
-                <div class="row"><label>Màu Line chính:</label><input type="color" id="edit-line-color"></div>
-                <div class="row" id="row-line-color2" style="display: none;"><label>Màu Line phụ (Đuổi):</label><input type="color" id="edit-line-color2"></div>
-                <div class="row"><label>Độ dày:</label><input type="range" id="edit-line-width" min="3" max="30"></div>
-                <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa Tuyến này</button>
-            </div>
-        </div>
-
-        <div class="box" id="box-shape">
-            <h3>3. Phân Khu (Shape)</h3>
-            <div class="ur-row">
-                <button onclick="undo('shape')">↩️ Undo</button>
-                <button onclick="redo('shape')">↪️ Redo</button>
-            </div>
-            <button id="btn-draw-shape" class="action">🟩 Vẽ Khu vực mới</button>
-            <div id="editor-shape" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; display: none;">
-                <div class="row">
-                    <label>Hiệu ứng:</label>
-                    <select id="edit-shape-anim">
-                        <option value="Breathing">Khối màu nhịp thở</option>
-                        <option value="Pulsing Glow">Chớp sáng viền ngoài</option>
-                        <option value="Chasing Border">Viền chạy vòng quanh</option>
-                        <option value="Static">Tĩnh tại</option>
-                    </select>
-                </div>
-                <div class="row"><label>Màu khối:</label><input type="color" id="edit-shape-color"></div>
-                <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa Vùng này</button>
-            </div>
-        </div>
-
-        <div class="box" id="box-marker">
-            <h3>4. Nội dung (Timeline)</h3>
-            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                <button id="btn-add-marker" class="action" style="margin-bottom:0;">🖼️ Thêm Text/Ảnh</button>
-                <button id="btn-add-pin" style="background:#dc2626; margin-bottom:0;">📍 Thêm Location</button>
-            </div>
-            <input type="text" id="marker-text" placeholder="Gõ Text (Font Manrope)...">
-            <input type="file" id="marker-file" accept="image/*">
-            
-            <div id="editor-marker" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; display: none;">
-                <input type="text" id="edit-marker-text">
-                <div class="row"><label>Kích thước:</label><input type="range" id="edit-marker-scale" min="0.3" max="5" step="0.1"></div>
-                <div class="row"><label>Hiện lúc (s):</label><input type="number" id="edit-marker-start" min="0" step="0.5"></div>
-                <div class="row"><label>Ẩn lúc (s):</label><input type="number" id="edit-marker-end" min="0" step="0.5"></div>
-                <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa đối tượng này</button>
-            </div>
+            <h3>1. Khung Hình Tràn Viền</h3>
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;"><button id="btn-16-9" class="active" style="background:var(--cobalt-dark);">16:9 Ngang</button><button id="btn-9-16" style="background:var(--cobalt-dark);">9:16 Dọc</button></div>
+            <div class="row" style="margin: 0;"><input type="checkbox" id="toggle-labels" checked style="width:auto; margin:0 8px 0 0;"><label for="toggle-labels" style="width:auto;">Hiện nhãn địa điểm</label></div>
         </div>
 
         <div class="box">
-            <h3>5. Camera & Export (4K)</h3>
-            <div class="ur-row">
-                <button onclick="undo('cam')">↩️ Undo Cam</button>
-                <button onclick="redo('cam')">↪️ Redo Cam</button>
-            </div>
-            <button id="btn-add-kf" style="background: var(--cobalt-dark); border: 1px solid var(--cobalt-light);">+ Thêm Mốc Camera Đang Xem</button>
-            <div id="kf-list" style="max-height: 120px; overflow-y:auto; margin-bottom:15px; background:#000; padding:10px; border-radius:8px;"></div>
-            
-            <div class="row">
-                <label>Thời lượng (ms):</label>
-                <select id="video-duration">
-                    <option value="5000">5 Giây (Nhanh)</option>
-                    <option value="8000">8 Giây</option>
-                    <option value="10000" selected>10 Giây (Chuẩn)</option>
-                    <option value="15000">15 Giây (Cinematic)</option>
-                </select>
-            </div>
-            <button id="btn-record" class="record">🎬 RENDER 4K .MP4</button>
+            <h3>2. Giao Thông (Line)</h3>
+            <button id="btn-draw-line" class="action">🛣️ Vẽ Cung đường mới</button>
+        </div>
+
+        <div class="box">
+            <h3>3. Phân Khu (Shape)</h3>
+            <button id="btn-draw-shape" class="action">🟩 Vẽ Khu vực mới</button>
+        </div>
+
+        <div class="box">
+            <h3>4. Hình Ảnh / Text / Pin</h3>
+            <div style="display: flex; gap: 8px; margin-bottom: 15px;"><button id="btn-add-marker" class="action" style="margin-bottom:0;">🖼️ Ghim Text/Ảnh</button><button id="btn-add-pin" style="background:#dc2626; margin-bottom:0;">📍 Ghim Pin</button></div>
+            <input type="text" id="marker-text" placeholder="Gõ Text (Font Manrope)...">
+            <input type="file" id="marker-file" accept="image/*">
+        </div>
+
+        <div class="box">
+            <h3>5. Camera (Kịch Bản)</h3>
+            <button id="btn-add-kf" style="background: var(--cobalt-dark); border: 1px solid var(--cobalt-sky);">+ Lưu Mốc Cam Hiện Tại</button>
+            <div id="kf-list" style="max-height: 150px; overflow-y:auto; background:#000; padding:10px; border-radius:8px;"></div>
         </div>
     </div>
 
-    <div id="workspace">
-        <div id="mask-left" class="mask"></div>
-        <div id="mask-right" class="mask"></div>
-        
-        <div id="map"></div>
-        <div id="recording-overlay">● ĐANG RENDER: 0.0s</div>
+    <div id="main-area">
+        <div id="top-bar">
+            <div class="row" style="margin: 0; gap: 10px;">
+                <label style="width: auto; margin: 0; color: #aaa;">Thời lượng Cam di chuyển:</label>
+                <select id="video-duration" style="width: 120px; margin: 0;">
+                    <option value="5000">5 Giây</option>
+                    <option value="8000">8 Giây</option>
+                    <option value="10000" selected>10 Giây</option>
+                    <option value="15000">15 Giây</option>
+                </select>
+                <span style="color:#aaa; font-size:12px; margin-left:10px;">(+2s Zoom nhẹ cuối)</span>
+            </div>
+            <button id="btn-record" class="record">🎬 XUẤT VIDEO 4K MP4</button>
+        </div>
+
+        <div id="workspace">
+            <div id="map-wrapper">
+                <div id="map"></div>
+            </div>
+
+            <div id="recording-overlay">● ĐANG RENDER: 0.0s</div>
+            <div id="popup-wrapper" style="display: none;">
+                <div id="editor-line" style="display: none;">
+                    <h4>Tinh chỉnh Tuyến Đường</h4>
+                    <div class="row"><label>Hiệu ứng:</label><select id="edit-line-anim"><option value="Preset 1">Lõi Liền + Đứt chạy</option><option value="Preset 2">Gradient Đuổi màu</option><option value="Preset 3">LED Đứt phát sáng</option></select></div>
+                    <div class="row"><label>Màu chính:</label><input type="color" id="edit-line-color"></div>
+                    <div class="row" id="row-line-color2" style="display: none;"><label>Màu phụ:</label><input type="color" id="edit-line-color2"></div>
+                    <div class="row"><label>Độ dày:</label><input type="range" id="edit-line-width" min="3" max="30"></div>
+                    <button class="btn-delete" style="background: #7f1d1d; margin-top: 15px;">🗑️ Xóa đối tượng này</button>
+                </div>
+                <div id="editor-shape" style="display: none;">
+                    <h4>Tinh chỉnh Khu Vực</h4>
+                    <div class="row"><label>Hiệu ứng:</label><select id="edit-shape-anim"><option value="Breathing">Nhịp thở</option><option value="Pulsing Glow">Chớp sáng</option><option value="Chasing Border">Chạy viền</option><option value="Static">Tĩnh</option></select></div>
+                    <div class="row"><label>Màu khối:</label><input type="color" id="edit-shape-color"></div>
+                    <div class="row"><label>Độ mờ:</label><input type="range" id="edit-shape-opacity" min="10" max="100"></div>
+                    <button class="btn-delete" style="background: #7f1d1d; margin-top: 15px;">🗑️ Xóa đối tượng này</button>
+                </div>
+                <div id="editor-marker" style="display: none;">
+                    <h4>Tinh chỉnh Ghim/Nội Dung</h4>
+                    <input type="text" id="edit-marker-text" placeholder="Sửa Text...">
+                    <div class="row"><label>Kích cỡ:</label><input type="range" id="edit-marker-scale" min="0.3" max="5" step="0.1"></div>
+                    <button class="btn-delete" style="background: #7f1d1d; margin-top: 15px;">🗑️ Xóa đối tượng này</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="bottom-timeline">
+            <div id="timeline-empty">Bấm chọn một đối tượng trên map hoặc vừa vẽ xong để thiết lập Thời gian xuất hiện</div>
+            <div class="slider-group" id="tl-group" style="display: none;">
+                <label>Thời lượng hiển thị:</label>
+                <input type="range" id="tl-start" min="0" max="10" step="0.5" value="0">
+                <div class="slider-val" id="tl-val-start">0s</div>
+                <span style="color: #666;">➖</span>
+                <input type="range" id="tl-end" min="0" max="10" step="0.5" value="10">
+                <div class="slider-val" id="tl-val-end">10s</div>
+            </div>
+        </div>
     </div>
 
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW52aWV0IiwiYSI6ImNtcjh5ajh0ajAyYTAyeXNlaWxjZDI2bG0ifQ.RQ7VjsqIxSBFgYdLByo1pw';
 
-        // State Management
-        let state = {
-            line: { past: [], present: [], future: [] },
-            shape: { past: [], present: [], future: [] },
-            marker: { present: [] },
-            cam: { past: [], present: [], future: [] }
-        };
-        let activeObj = null; // {type, id}
-        let isAddingMarker = false, addingType = '';
-        let loadedImgBase64 = null, isRecording = false;
+        const BASE_RES_W = 3840;
+        const BASE_RES_H = 2160;
+        const UI_SCALE = 2.5; // Hệ số phóng to UI (Ghim, Chữ) để không bị lọt thỏm trong không gian 4K
 
-        // Initialize Map
+        let state = { line: { past: [], present: [], future: [] }, shape: { past: [], present: [], future: [] }, marker: { past: [], present: [], future: [] }, cam: { past: [], present: [], future: [] } };
+        let activeObj = null; let isAddingMarker = false, addingType = ''; let loadedImgBase64 = null, isRecording = false;
+        let globalTime = 0; let lastFrameTime = performance.now();
+        let markerInstances = {}; 
+
         const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/satellite-streets-v12',
-            center: [106.9950, 20.9485],
-            zoom: 15.5, pitch: 45, bearing: 0,
-            preserveDrawingBuffer: true,
-            fog: false // Tắt sương mù để viễn cảnh rõ nét
+            container: 'map', style: 'mapbox://styles/mapbox/satellite-streets-v12',
+            center: [106.9950, 20.9485], zoom: 15.5, pitch: 45, bearing: 0, preserveDrawingBuffer: true
         });
 
-        // Initialize Draw (Dùng để hiển thị Node khi Edit)
-        const draw = new MapboxDraw({ 
-            displayControlsDefault: false,
-            userProperties: true,
-            styles: [
-                // Ẩn line mặc định của draw (vì ta dùng layer custom riêng)
-                { "id": "gl-draw-line-inactive", "type": "line", "filter": ["all", ["==", "active", "false"], ["==", "$type", "LineString"]], "paint": { "line-opacity": 0 } },
-                { "id": "gl-draw-line-active", "type": "line", "filter": ["all", ["==", "$type", "LineString"], ["==", "active", "true"]], "paint": { "line-opacity": 0 } },
-                { "id": "gl-draw-polygon-inactive", "type": "fill", "filter": ["all", ["==", "active", "false"], ["==", "$type", "Polygon"]], "paint": { "fill-opacity": 0 } },
-                { "id": "gl-draw-polygon-active", "type": "fill", "filter": ["all", ["==", "active", "true"], ["==", "$type", "Polygon"]], "paint": { "fill-opacity": 0 } },
-                // Chỉ hiện các điểm Node (Vertices) màu cam khi click vào line/shape để Sale nắn chỉnh
-                { "id": "gl-draw-polygon-and-line-vertex-active", "type": "circle", "filter": ["all", ["==", "meta", "vertex"], ["==", "$type", "Point"]], "paint": { "circle-radius": 5, "circle-color": "#ff7300" } }
-            ]
-        });
+        const draw = new MapboxDraw({ displayControlsDefault: false });
         map.addControl(draw);
 
         const geocoder = new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl: mapboxgl, placeholder: 'Tìm địa điểm...', marker: false });
         document.getElementById('geocoder-container').appendChild(geocoder.onAdd(map));
 
+        const pinSVGDataURL = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="44" height="44"><path fill="#dc2626" d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z"/></svg>`);
+
         map.on('load', () => {
-            // Không áp bộ lọc màu nào cả, giữ màu vệ tinh thật
+            map.setFog({
+                'color': '#87CEEB',      
+                'high-color': '#245cdf', 
+                'horizon-blend': 0.1,            
+                'space-color': '#87CEEB', 
+                'star-intensity': 0.0     
+            });
             
-            // --- NGUỒN DỮ LIỆU ---
             map.addSource('src-shapes', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
             map.addSource('src-lines', { type: 'geojson', lineMetrics: true, data: { type: 'FeatureCollection', features: [] } });
-            map.addSource('src-markers', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
-            // --- SHAPE LAYERS ---
-            map.addLayer({ 'id': 'lyr-shape-fill', 'type': 'fill', 'source': 'src-shapes', 'paint': { 'fill-color': ['get', 'color'], 'fill-opacity': ['*', ['get', 'baseOpacity'], ['get', 'fadeOpacity']] } });
-            map.addLayer({ 'id': 'lyr-shape-border', 'type': 'line', 'source': 'src-shapes', 'paint': { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': ['get', 'fadeOpacity'] } });
+            let drawLayers = map.getStyle().layers.filter(l => l.id.startsWith('gl-draw'));
+            let targetDrawId = drawLayers.length > 0 ? drawLayers[0].id : undefined;
 
-            // --- LINE LAYERS ---
-            // Glow Mờ tỏa rộng (Chỉ cho Preset 1, 3)
-            map.addLayer({ 'id': 'lyr-line-glow', 'type': 'line', 'source': 'src-lines', 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color'], 'line-width': ['*', ['get', 'width'], 3], 'line-blur': 12, 'line-opacity': ['case', ['==', ['get', 'anim'], 'Preset 2'], 0, ['*', 0.6, ['get', 'fadeOpacity']]] } });
-            
-            // Core cứng (Cho Preset 1, 2. Ẩn ở Preset 3)
-            map.addLayer({ 'id': 'lyr-line-core', 'type': 'line', 'source': 'src-lines', 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color'], 'line-width': ['get', 'width'], 'line-opacity': ['case', ['==', ['get', 'anim'], 'Preset 3'], 0, ['get', 'fadeOpacity']] } });
-            
-            // Preset 2: Gradient Đuổi (Layer đặc biệt đè lên Core)
-            map.addLayer({ 'id': 'lyr-line-grad', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'anim'], 'Preset 2'], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-width': ['get', 'width'], 'line-opacity': ['get', 'fadeOpacity'], 'line-gradient': ['interpolate', ['linear'], ['line-progress'], 0, "blue", 1, "red"] } }); // Default, updated in loop
+            map.addLayer({ 'id': 'lyr-shape-fill', 'type': 'fill', 'source': 'src-shapes', 'paint': { 'fill-color': ['get', 'color'], 'fill-opacity': ['*', ['coalesce', ['feature-state', 'fade'], 1], ['get', 'opacity']] } }, targetDrawId);
+            map.addLayer({ 'id': 'lyr-shape-border', 'type': 'line', 'source': 'src-shapes', 'paint': { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': ['coalesce', ['feature-state', 'fade'], 1] } }, targetDrawId);
 
-            // Dash chạy (Preset 1 & 3). Preset 3 sẽ có bề rộng bự hơn và blur để tạo cảm giác LED
-            map.addLayer({ 'id': 'lyr-line-dash', 'type': 'line', 'source': 'src-lines', 'filter': ['!=', ['get', 'anim'], 'Preset 2'], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['case', ['==', ['get', 'anim'], 'Preset 3'], ['get', 'color'], '#ffffff'], 'line-width': ['case', ['==', ['get', 'anim'], 'Preset 3'], ['*', ['get', 'width'], 1.2], ['*', ['get', 'width'], 0.4]], 'line-blur': ['case', ['==', ['get', 'anim'], 'Preset 3'], 2, 0], 'line-dasharray': [0, 4, 3], 'line-opacity': ['get', 'fadeOpacity'] } });
+            map.addLayer({ 'id': 'lyr-line-glow', 'type': 'line', 'source': 'src-lines', 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color'], 'line-width': ['*', ['get', 'width'], 3], 'line-blur': 12, 'line-opacity': ['*', ['coalesce', ['feature-state', 'fade'], 1], ['case', ['==', ['get', 'anim'], 'Preset 2'], 0, ['==', ['get', 'anim'], 'Preset 3'], 0, 0.7]] } }, targetDrawId);
+            map.addLayer({ 'id': 'lyr-line-p3-glow', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'anim'], 'Preset 3'], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color'], 'line-width': ['*', ['get', 'width'], 3.5], 'line-blur': 15, 'line-opacity': ['*', ['coalesce', ['feature-state', 'fade'], 1], 0.9] } }, targetDrawId);
+            map.addLayer({ 'id': 'lyr-line-core', 'type': 'line', 'source': 'src-lines', 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color'], 'line-width': ['get', 'width'], 'line-opacity': ['*', ['coalesce', ['feature-state', 'fade'], 1], ['case', ['==', ['get', 'anim'], 'Preset 3'], 0, 1]] } }, targetDrawId);
+            map.addLayer({ 'id': 'lyr-line-grad', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'anim'], 'Preset 2'], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-width': ['get', 'width'], 'line-opacity': ['coalesce', ['feature-state', 'fade'], 1] } }, targetDrawId);
+            map.addLayer({ 'id': 'lyr-line-dash', 'type': 'line', 'source': 'src-lines', 'filter': ['!=', ['get', 'anim'], 'Preset 2'], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': '#ffffff', 'line-width': ['case', ['==', ['get', 'anim'], 'Preset 3'], ['*', ['get', 'width'], 1.2], ['*', ['get', 'width'], 0.4]], 'line-blur': ['case', ['==', ['get', 'anim'], 'Preset 3'], 2, 0], 'line-dasharray': [0, 4, 3], 'line-opacity': ['coalesce', ['feature-state', 'fade'], 1] } }, targetDrawId);
 
-            // --- MARKER WEBGL ---
-            map.addLayer({ 'id': 'lyr-markers', 'type': 'symbol', 'source': 'src-markers', 'layout': { 'icon-image': ['get', 'imgId'], 'icon-size': ['get', 'scale'], 'icon-allow-overlap': true, 'icon-ignore-placement': true }, 'paint': { 'icon-opacity': ['get', 'fadeOpacity'] } });
-
-            animateEngine();
+            updateLayout(); updateTimelineMax(); animateEngine(); 
         });
 
-        // ================= ANIMATION ENGINE ĐỘNG LỰC HỌC =================
-        const p1Seq = [[4,4], [0,1,4,3], [0,2,4,2], [0,3,4,1], [0,4,4,0], [1,4,3,0], [2,4,2,0], [3,4,1,0]];
-        function animateEngine() {
-            let t = performance.now();
+        // HÀM ÉP KHUNG 4K NGUYÊN BẢN (NATIVE WYSIWYG)
+        function updateLayout() {
+            if(isRecording) return; 
+            const is169 = document.getElementById('btn-16-9').classList.contains('active');
             
-            // Dash & LED
-            let s1 = Math.floor(t / 50) % p1Seq.length;
+            // Ép độ phân giải vật lý luôn luôn là 4K
+            const targetWidth = is169 ? BASE_RES_W : BASE_RES_H;
+            const targetHeight = is169 ? BASE_RES_H : BASE_RES_W;
+            
+            const wrapper = document.getElementById('map-wrapper');
+            const workspace = document.getElementById('workspace');
+            
+            wrapper.style.width = targetWidth + 'px'; 
+            wrapper.style.height = targetHeight + 'px';
+            
+            // Tính toán tỷ lệ Scale để nhét vừa khối 4K vào màn hình máy tính của bạn
+            const padding = 40;
+            const scaleFit = Math.min(
+                (workspace.clientWidth - padding) / targetWidth, 
+                (workspace.clientHeight - padding) / targetHeight
+            );
+            
+            wrapper.style.transform = `scale(${scaleFit})`;
+            
+            if (map) map.resize();
+        }
+
+        window.addEventListener('resize', updateLayout);
+        document.getElementById('btn-16-9').addEventListener('click', (e) => { document.getElementById('btn-9-16').classList.remove('active'); e.target.classList.add('active'); updateLayout(); });
+        document.getElementById('btn-9-16').addEventListener('click', (e) => { document.getElementById('btn-16-9').classList.remove('active'); e.target.classList.add('active'); updateLayout(); });
+
+        function updateTimelineMax() {
+            let maxS = parseInt(document.getElementById('video-duration').value) / 1000;
+            document.getElementById('tl-start').max = maxS; document.getElementById('tl-end').max = maxS;
+            if (activeObj) {
+                let item = state[activeObj.type].present.find(x => x.properties.id === activeObj.id);
+                if(item) {
+                    let s = Math.min(item.properties.start, maxS); let e = Math.min(item.properties.end, maxS);
+                    document.getElementById('tl-start').value = s; document.getElementById('tl-val-start').innerText = s + 's';
+                    document.getElementById('tl-end').value = e; document.getElementById('tl-val-end').innerText = e + 's';
+                }
+            }
+        }
+        document.getElementById('video-duration').addEventListener('change', updateTimelineMax);
+
+        const p1Seq = [[4,4], [0,1,4,3], [0,2,4,2], [0,3,4,1], [0,4,4,0], [1,4,3,0], [2,4,2,0], [3,4,1,0]];
+        
+        function updateMapAnimations(timeMs) {
+            let curSec = timeMs / 1000;
+
+            ['line', 'shape'].forEach(type => {
+                state[type].present.forEach(f => {
+                    let s = parseFloat(f.properties.start) || 0; let e = parseFloat(f.properties.end) || 999;
+                    let fadeOp = 1;
+                    if (isRecording) {
+                        if (curSec <= s || curSec >= e) fadeOp = 0;
+                        else if (curSec < s + 0.5) fadeOp = (curSec - s) / 0.5;
+                        else if (curSec > e - 0.5) fadeOp = (e - curSec) / 0.5;
+                    }
+                    map.setFeatureState({ source: 'src-' + type + 's', id: f.id }, { fade: fadeOp });
+                });
+            });
+
+            state.marker.present.forEach(m => {
+                let el = document.getElementById(m.properties.id);
+                if(el) { 
+                    let s = parseFloat(m.properties.start) || 0; let e = parseFloat(m.properties.end) || 999; 
+                    let fadeOp = 1;
+                    if (isRecording) {
+                        if (curSec <= s || curSec >= e) fadeOp = 0;
+                        else if (curSec < s + 0.5) fadeOp = (curSec - s) / 0.5;
+                        else if (curSec > e - 0.5) fadeOp = (e - curSec) / 0.5;
+                    }
+                    el.style.opacity = fadeOp; 
+                }
+            });
+
+            let s1 = Math.floor(timeMs / 50) % p1Seq.length;
             if (map.getLayer('lyr-line-dash')) map.setPaintProperty('lyr-line-dash', 'line-dasharray', p1Seq[s1]);
             
-            // Gradient Color Chase (Mượt 60fps)
             if (map.getLayer('lyr-line-grad') && state.line.present.length > 0) {
                 let activeGradFeat = state.line.present.find(f => f.properties.anim === 'Preset 2');
                 if (activeGradFeat) {
-                    let c1 = activeGradFeat.properties.color; let c2 = activeGradFeat.properties.color2;
-                    let phase = (t / 1000) % 1; // 0 to 1 loop
-                    let stops = [
-                        0, c1,
-                        Math.max(0, phase - 0.2), c1,
-                        phase, c2,
-                        Math.min(1, phase + 0.2), c1,
-                        1, c1
-                    ];
-                    map.setPaintProperty('lyr-line-grad', 'line-gradient', ['interpolate', ['linear'], ['line-progress'], ...stops]);
+                    let c1 = activeGradFeat.properties.color; let c2 = activeGradFeat.properties.color2; 
+                    let phase = (timeMs / 3000) % 2.0 - 0.5; let stops = [];
+                    let pStart = phase - 0.2; let pMid = phase; let pEnd = phase + 0.2;
+                    if (pStart <= 0) stops.push([0, c1]); else { stops.push([0, c1]); stops.push([pStart, c1]); }
+                    if (pMid > 0 && pMid < 1) stops.push([pMid, c2]);
+                    if (pEnd >= 1) stops.push([1, c1]); else { stops.push([pEnd, c1]); stops.push([1, c1]); }
+                    let grad = ['interpolate', ['linear'], ['line-progress']]; let lastKey = -1;
+                    stops.forEach(s => { let k = Math.max(0, Math.min(1, s[0])); if (k > lastKey) { grad.push(k, s[1]); lastKey = k; } else if (k === lastKey && k === 1 && grad.length >= 3) { grad[grad.length - 1] = s[1]; } });
+                    map.setPaintProperty('lyr-line-grad', 'line-gradient', grad);
                 }
             }
 
-            // Shape Animations
-            let breath = (Math.sin(t / 400) * 0.3) + 0.7; 
-            if (map.getLayer('lyr-shape-fill')) map.setPaintProperty('lyr-shape-fill', 'fill-opacity', ['*', ['get', 'fadeOpacity'], ['*', ['get', 'baseOpacity'], ['case', ['==', ['get', 'anim'], 'Breathing'], breath, 1]]]);
+            let breath = (Math.sin(timeMs / 400) * 0.3) + 0.7; 
+            if (map.getLayer('lyr-shape-fill')) map.setPaintProperty('lyr-shape-fill', 'fill-opacity', ['*', ['coalesce', ['feature-state', 'fade'], 1], ['*', ['get', 'opacity'], ['case', ['==', ['get', 'anim'], 'Breathing'], breath, 1]]]);
             
-            let pulse = (Math.sin(t / 150) + 1) * 2; 
+            let pulse = (Math.sin(timeMs / 150) + 1) * 2; 
             if (map.getLayer('lyr-shape-border')) {
                 map.setPaintProperty('lyr-shape-border', 'line-width', ['case', ['==', ['get', 'anim'], 'Pulsing Glow'], pulse + 2, ['==', ['get', 'anim'], 'Chasing Border'], 4, 2]);
-                map.setPaintProperty('lyr-shape-border', 'line-opacity', ['*', ['get', 'fadeOpacity'], ['case', ['==', ['get', 'anim'], 'Pulsing Glow'], 1, 1]]);
                 map.setPaintProperty('lyr-shape-border', 'line-dasharray', ['case', ['==', ['get', 'anim'], 'Chasing Border'], p1Seq[s1], [1, 0]]);
             }
-
-            if(!isRecording) requestAnimationFrame(animateEngine);
         }
 
-        // ================= XỬ LÝ UNDO / REDO =================
-        function saveState(type, data) {
-            let ctx = state[type];
-            ctx.past.push(JSON.parse(JSON.stringify(ctx.present)));
-            ctx.present = JSON.parse(JSON.stringify(data));
-            ctx.future = [];
-            if(type === 'cam') renderKeyframes(); else syncToMap();
-        }
-        function undo(type) {
-            let ctx = state[type]; if(ctx.past.length === 0) return;
-            ctx.future.push(JSON.parse(JSON.stringify(ctx.present)));
-            ctx.present = ctx.past.pop();
-            if(type === 'cam') renderKeyframes(); else syncToMap();
-        }
-        function redo(type) {
-            let ctx = state[type]; if(ctx.future.length === 0) return;
-            ctx.past.push(JSON.parse(JSON.stringify(ctx.present)));
-            ctx.present = ctx.future.pop();
-            if(type === 'cam') renderKeyframes(); else syncToMap();
-        }
-        function syncToMap(currentTime = -1) {
-            function calcOp(m) {
-                let op = 1, fd = 0.5;
-                if (currentTime >= 0) {
-                    if (currentTime < m.properties.start || currentTime > m.properties.end) op = 0;
-                    else if (currentTime - m.properties.start < fd) op = (currentTime - m.properties.start) / fd;
-                    else if (m.properties.end - currentTime < fd) op = (m.properties.end - currentTime) / fd;
-                }
-                if (m.properties.markerType === 'pin') { let el = document.getElementById(m.properties.id); if (el) el.style.opacity = Math.max(0, Math.min(1, op)); }
-                return { ...m, properties: { ...m.properties, fadeOpacity: Math.max(0, Math.min(1, op)) } };
+        function animateEngine(now) {
+            if (!now) now = performance.now(); let dt = now - lastFrameTime; lastFrameTime = now;
+            if (!isRecording) {
+                globalTime += dt; 
+                updateMapAnimations(globalTime);
+                requestAnimationFrame(animateEngine);
             }
-            
-            map.getSource('src-lines').setData({ type: 'FeatureCollection', features: state.line.present.map(calcOp) });
-            map.getSource('src-shapes').setData({ type: 'FeatureCollection', features: state.shape.present.map(calcOp) });
-            map.getSource('src-markers').setData({ type: 'FeatureCollection', features: state.marker.present.filter(m => m.properties.markerType === 'img').map(calcOp) });
         }
 
-        // ================= VẼ VÀ NẮN CHỈNH NODE (VERTEX) =================
-        document.getElementById('btn-draw-line').addEventListener('click', () => { draw.changeMode('draw_line_string'); activeObj = null; });
-        document.getElementById('btn-draw-shape').addEventListener('click', () => { draw.changeMode('draw_polygon'); activeObj = null; });
+        function syncToMap() {
+            map.getSource('src-lines').setData({ type: 'FeatureCollection', features: state.line.present });
+            map.getSource('src-shapes').setData({ type: 'FeatureCollection', features: state.shape.present });
+            
+            Object.values(markerInstances).forEach(mk => mk.remove()); markerInstances = {};
+            state.marker.present.forEach(m => renderHTMLMarker(m));
+            
+            if(activeObj && (activeObj.type === 'line' || activeObj.type === 'shape')) {
+                let item = state[activeObj.type].present.find(x => x.properties.id === activeObj.id);
+                if(item) { draw.deleteAll(); draw.add({ type: 'Feature', id: item.properties.id, geometry: item.geometry }); draw.changeMode('direct_select', { featureId: item.properties.id }); }
+            }
+            if(activeObj && activeObj.type === 'marker') {
+                let el = document.getElementById(activeObj.id); if (el) { el.classList.add('selected'); markerInstances[activeObj.id].setDraggable(true); }
+            }
+        }
+
+        document.getElementById('btn-draw-line').addEventListener('click', () => { 
+            clearSelection(); 
+            document.body.classList.add('is-drawing');
+            draw.changeMode('draw_line_string'); 
+        });
+        
+        document.getElementById('btn-draw-shape').addEventListener('click', () => { 
+            clearSelection(); 
+            document.body.classList.add('is-drawing');
+            draw.changeMode('draw_polygon'); 
+        });
 
         map.on('draw.create', (e) => {
-            const feat = e.features[0]; draw.delete(feat.id); // Tạm xóa khỏi draw default để nạp vào DB của ta
-            let vDur = parseInt(document.getElementById('video-duration').value) / 1000;
-            const id = 'geo-' + Date.now();
-            
+            document.body.classList.remove('is-drawing'); 
+            const feat = e.features[0]; draw.delete(feat.id); const id = 'geo-' + Date.now();
+            let dur = parseInt(document.getElementById('video-duration').value) / 1000;
             if (feat.geometry.type === 'LineString') {
-                let arr = [...state.line.present, { type: 'Feature', geometry: feat.geometry, properties: { id, anim: 'Preset 1', color: '#ff3300', color2: '#00ffff', width: 6, start: 0, end: vDur, fadeOpacity: 1 } }];
-                saveState('line', arr); selectGeo('line', id);
+                state.line.present.push({ type: 'Feature', id: id, geometry: feat.geometry, properties: { id, anim: 'Preset 1', color: '#ff3300', color2: '#00ffff', width: 6, start: 0, end: dur } });
+                syncToMap(); selectGeo('line', id);
             } else {
-                let arr = [...state.shape.present, { type: 'Feature', geometry: feat.geometry, properties: { id, anim: 'Breathing', color: '#00ffff', baseOpacity: 0.4, start: 0, end: vDur, fadeOpacity: 1 } }];
-                saveState('shape', arr); selectGeo('shape', id);
+                state.shape.present.push({ type: 'Feature', id: id, geometry: feat.geometry, properties: { id, anim: 'Breathing', color: '#00ffff', opacity: 0.4, start: 0, end: dur } });
+                syncToMap(); selectGeo('shape', id);
             }
         });
 
-        // Kéo thả Node sửa hình
-        map.on('draw.update', (e) => {
-            if(!activeObj) return;
-            const updatedFeat = e.features[0];
-            let list = [...state[activeObj.type].present];
-            let idx = list.findIndex(x => x.properties.id === activeObj.id);
-            if (idx > -1) {
-                list[idx].geometry = updatedFeat.geometry; // Cập nhật tọa độ Node mới
-                saveState(activeObj.type, list);
-            }
-        });
+        map.on('draw.update', (e) => { if(!activeObj) return; const updatedFeat = e.features[0]; let idx = state[activeObj.type].present.findIndex(x => x.properties.id === activeObj.id); if (idx > -1) { state[activeObj.type].present[idx].geometry = updatedFeat.geometry; syncToMap(); } });
 
-        // Bắt click chọn Đối tượng
         map.on('click', (e) => {
-            if (isAddingMarker || isRecording) return;
-            // Kiểm tra click vào hình nào
-            let feats = map.queryRenderedFeatures(e.point, { layers: ['lyr-line-core', 'lyr-line-glow-outer', 'lyr-shape-fill', 'lyr-markers'] });
-            
-            clearSelection();
-            if (feats.length > 0) {
-                let f = feats[0];
-                if (f.layer.id.includes('line')) selectGeo('line', f.properties.id);
-                else if (f.layer.id === 'lyr-shape-fill') selectGeo('shape', f.properties.id);
-                else if (f.layer.id === 'lyr-markers') selectGeo('marker', f.properties.id);
+            if (isRecording) return;
+            if (isAddingMarker) {
+                const id = 'mk-' + Date.now(); let dur = parseInt(document.getElementById('video-duration').value) / 1000;
+                if (addingType === 'pin') {
+                    let pinObj = { type: 'Feature', id: id, geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] }, properties: { id, markerType: 'pin', start: 0, end: dur, scale: 1 } };
+                    let imgCache = new Image(); imgCache.src = pinSVGDataURL; pinObj.imgObj = imgCache; 
+                    state.marker.present.push(pinObj);
+                } else {
+                    const text = document.getElementById('marker-text').value; let imgData = loadedImgBase64 || (text ? createTextImage(text) : null);
+                    let markerObj = { type: 'Feature', id: id, geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] }, properties: { id, markerType: text ? 'text' : 'img', scale: text ? 0.6 : 1, text: text, imgBase64: imgData, start: 0, end: dur } };
+                    if (imgData) { let imgCache = new Image(); imgCache.src = imgData; markerObj.imgObj = imgCache; }
+                    state.marker.present.push(markerObj);
+                }
+                syncToMap(); selectGeo('marker', id);
+                isAddingMarker = false; addingType = ''; map.getCanvas().style.cursor = '';
+                document.getElementById('marker-text').value = ''; document.getElementById('marker-file').value = ''; loadedImgBase64 = null; return;
             }
+            
+            let mode = draw.getMode(); 
+            if (mode === 'draw_line_string' || mode === 'draw_polygon') {
+                return;
+            }
+
+            let drawLayers = map.getStyle().layers.filter(l => l.id.startsWith('gl-draw')).map(l => l.id);
+            if (drawLayers.length > 0 && map.queryRenderedFeatures(e.point, { layers: drawLayers }).length > 0) return;
+
+            let feats = map.queryRenderedFeatures(e.point, { layers: ['lyr-line-core', 'lyr-line-glow', 'lyr-shape-fill'] });
+            clearSelection();
+            if (feats.length > 0) { let f = feats[0]; if (f.layer.id.includes('line')) selectGeo('line', f.properties.id); else if (f.layer.id.includes('shape')) selectGeo('shape', f.properties.id); }
         });
 
         function clearSelection() {
-            activeObj = null; draw.deleteAll(); // Xóa node hiển thị
-            document.querySelectorAll('.box').forEach(b => b.classList.remove('highlight'));
-            document.querySelectorAll('.custom-html-marker, .pin-marker').forEach(el => el.classList.remove('selected'));
-            ['editor-line', 'editor-shape', 'editor-marker'].forEach(id => document.getElementById(id).style.display = 'none');
+            document.body.classList.remove('is-drawing'); 
+            activeObj = null; draw.deleteAll(); document.querySelectorAll('.custom-html-marker, .pin-marker').forEach(el => el.classList.remove('selected'));
+            Object.values(markerInstances).forEach(mk => mk.setDraggable(false)); 
+            document.getElementById('timeline-empty').style.display = 'block'; document.getElementById('tl-group').style.display = 'none';
+            document.getElementById('popup-wrapper').style.display = 'none';
         }
 
         function selectGeo(type, id) {
-            activeObj = { type, id };
-            let item = state[type].present.find(x => x.properties.id === id);
-            if (!item) return;
+            activeObj = { type, id }; let item = state[type].present.find(x => x.properties.id === id); if (!item) return;
+            if(type === 'line' || type === 'shape') { draw.deleteAll(); draw.add({ type: 'Feature', id: item.properties.id, geometry: item.geometry }); draw.changeMode('direct_select', { featureId: item.properties.id }); }
+            
+            document.getElementById('timeline-empty').style.display = 'none'; document.getElementById('tl-group').style.display = 'flex';
+            let maxS = parseInt(document.getElementById('video-duration').value) / 1000;
+            let s = Math.min(item.properties.start || 0, maxS); let e = Math.min(item.properties.end || maxS, maxS);
+            document.getElementById('tl-start').value = s; document.getElementById('tl-val-start').innerText = s + 's';
+            document.getElementById('tl-end').value = e; document.getElementById('tl-val-end').innerText = e + 's';
 
-            // Nếu là Line/Shape, đẩy vào Draw để Sale nắn Node
-            if(type === 'line' || type === 'shape') {
-                draw.deleteAll(); draw.add({ type: 'Feature', id: item.properties.id, geometry: item.geometry });
-                draw.changeMode('direct_select', { featureId: item.properties.id }); // Mở chế độ chỉnh điểm
-            }
+            let popupWrapper = document.getElementById('popup-wrapper'); popupWrapper.style.display = 'block';
+            ['editor-line', 'editor-shape', 'editor-marker'].forEach(elId => document.getElementById(elId).style.display = 'none');
+            
+            let contentDiv = document.getElementById('editor-' + type); 
+            if(contentDiv) contentDiv.style.display = 'block';
 
-            // Hiện Panel config
             if (type === 'line') {
-                document.getElementById('box-line').classList.add('highlight'); document.getElementById('editor-line').style.display = 'block';
-                document.getElementById('edit-line-anim').value = item.properties.anim;
-                document.getElementById('edit-line-color').value = item.properties.color;
-                document.getElementById('edit-line-color2').value = item.properties.color2;
-                document.getElementById('edit-line-width').value = item.properties.width;
+                document.getElementById('edit-line-anim').value = item.properties.anim; document.getElementById('edit-line-color').value = item.properties.color;
+                document.getElementById('edit-line-color2').value = item.properties.color2 || '#000000'; document.getElementById('edit-line-width').value = item.properties.width;
                 document.getElementById('row-line-color2').style.display = (item.properties.anim === 'Preset 2') ? 'flex' : 'none';
             } else if (type === 'shape') {
-                document.getElementById('box-shape').classList.add('highlight'); document.getElementById('editor-shape').style.display = 'block';
-                document.getElementById('edit-shape-anim').value = item.properties.anim;
-                document.getElementById('edit-shape-color').value = item.properties.color;
+                document.getElementById('edit-shape-anim').value = item.properties.anim; document.getElementById('edit-shape-color').value = item.properties.color; document.getElementById('edit-shape-opacity').value = item.properties.opacity * 100;
             } else if (type === 'marker') {
-                document.getElementById('box-marker').classList.add('highlight'); document.getElementById('editor-marker').style.display = 'block';
-                document.getElementById('edit-marker-text').value = item.properties.text || '';
-                document.getElementById('edit-marker-scale').value = item.properties.scale;
-                document.getElementById('edit-marker-start').value = item.properties.start;
-                document.getElementById('edit-marker-end').value = item.properties.end;
-                
-                let el = document.getElementById(id);
-                if(el) el.classList.add('selected'); // Hiện viền chọn cho HTML
+                document.getElementById('edit-marker-text').value = item.properties.text || ''; document.getElementById('edit-marker-scale').value = item.properties.scale || 1;
+                let el = document.getElementById(id); if(el) el.classList.add('selected');
+                if (markerInstances[id]) markerInstances[id].setDraggable(true);
             }
         }
 
-        // Cập nhật thuộc tính
-        function updateProp(type, prop, val) {
-            if(!activeObj) return;
-            let arr = [...state[type].present];
-            let idx = arr.findIndex(x => x.properties.id === activeObj.id);
-            if (idx > -1) { arr[idx].properties[prop] = val; saveState(type, arr); }
+        function updateProp(type, prop, val) { 
+            if(!activeObj) return; let idx = state[type].present.findIndex(x => x.properties.id === activeObj.id); 
+            if (idx > -1) { state[type].present[idx].properties[prop] = val; syncToMap(); } 
         }
+
+        document.getElementById('tl-start').addEventListener('input', (e) => { document.getElementById('tl-val-start').innerText = e.target.value + 's'; if(activeObj) { let idx = state[activeObj.type].present.findIndex(x=>x.properties.id === activeObj.id); if(idx>-1) state[activeObj.type].present[idx].properties.start = parseFloat(e.target.value); } });
+        document.getElementById('tl-end').addEventListener('input', (e) => { document.getElementById('tl-val-end').innerText = e.target.value + 's'; if(activeObj) { let idx = state[activeObj.type].present.findIndex(x=>x.properties.id === activeObj.id); if(idx>-1) state[activeObj.type].present[idx].properties.end = parseFloat(e.target.value); } });
         
         document.getElementById('edit-line-anim').addEventListener('change', (e) => { document.getElementById('row-line-color2').style.display = (e.target.value === 'Preset 2') ? 'flex' : 'none'; updateProp('line', 'anim', e.target.value); });
         document.getElementById('edit-line-color').addEventListener('input', (e) => updateProp('line', 'color', e.target.value));
         document.getElementById('edit-line-color2').addEventListener('input', (e) => updateProp('line', 'color2', e.target.value));
         document.getElementById('edit-line-width').addEventListener('input', (e) => updateProp('line', 'width', parseFloat(e.target.value)));
-        
         document.getElementById('edit-shape-anim').addEventListener('change', (e) => updateProp('shape', 'anim', e.target.value));
         document.getElementById('edit-shape-color').addEventListener('input', (e) => updateProp('shape', 'color', e.target.value));
+        document.getElementById('edit-shape-opacity').addEventListener('input', (e) => updateProp('shape', 'opacity', parseFloat(e.target.value)/100));
 
-        // ================= HTML MARKER & PIN =================
+        // Nâng cấp độ phân giải Canvas của Text bằng UI_SCALE
         function createTextImage(text) {
-            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-            ctx.font = "800 60px Manrope"; const metrics = ctx.measureText(text);
-            canvas.width = metrics.width + 40; canvas.height = 100;
-            ctx.font = "800 60px Manrope"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-            ctx.fillStyle = "white"; ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 10;
-            ctx.fillText(text, canvas.width/2, canvas.height/2);
-            return canvas.toDataURL();
+            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); 
+            const fontSize = 54 * UI_SCALE;
+            ctx.font = `800 ${fontSize}px Manrope`; const metrics = ctx.measureText(text);
+            canvas.width = Math.ceil(metrics.width + (40 * UI_SCALE)); canvas.height = 90 * UI_SCALE; 
+            ctx.font = `800 ${fontSize}px Manrope`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.fillStyle = "white"; ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 8 * UI_SCALE; 
+            ctx.fillText(text, canvas.width/2, canvas.height/2); return canvas.toDataURL();
         }
-
-        document.getElementById('marker-file').addEventListener('change', (e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (ev) => loadedImgBase64 = ev.target.result; reader.readAsDataURL(file); } });
-        document.getElementById('btn-add-marker').addEventListener('click', () => { isAddingMarker = true; addingType = 'img'; document.getElementById('btn-add-marker').innerText = '🎯 Click Map...'; });
-        document.getElementById('btn-add-pin').addEventListener('click', () => { isAddingMarker = true; addingType = 'pin'; document.getElementById('btn-add-pin').innerText = '🎯 Click Map...'; });
-
-        map.on('click', (e) => {
-            if (!isAddingMarker) return;
-            const id = 'mk-' + Date.now();
-            let vDur = parseInt(document.getElementById('video-duration').value) / 1000;
-            let arr = [...state.marker.present];
-
-            if (addingType === 'pin') {
-                arr.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] }, properties: { id, markerType: 'pin', start: 0, end: vDur, fadeOpacity: 1 } });
-                saveState('marker', arr); renderPin(arr[arr.length - 1]); selectGeo('marker', id);
-            } else {
-                const text = document.getElementById('marker-text').value;
-                let imgData = loadedImgBase64 || (text ? createTextImage(text) : null);
-                if (imgData) {
-                    const img = new Image(); img.onload = () => {
-                        map.addImage(id, img);
-                        arr.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] }, properties: { id, markerType: 'img', imgId: id, scale: text ? 0.5 : 0.2, text: text, start: 0, end: vDur, fadeOpacity: 1 } });
-                        saveState('marker', arr); selectGeo('marker', id);
-                    }; img.src = imgData;
-                }
-            }
-            isAddingMarker = false; addingType = '';
-            document.getElementById('btn-add-marker').innerText = '🖼️ Thêm Text/Ảnh'; document.getElementById('btn-add-pin').innerText = '📍 Thêm Location';
-            document.getElementById('marker-text').value = ''; document.getElementById('marker-file').value = ''; loadedImgBase64 = null;
+        
+        document.getElementById('marker-file').addEventListener('change', (e) => { 
+            const file = e.target.files[0]; 
+            if(file) { 
+                const reader = new FileReader(); 
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const MAX_DIM = 800; 
+                        let w = img.width, h = img.height;
+                        if (w > MAX_DIM || h > MAX_DIM) {
+                            if (w > h) { h = (h/w)*MAX_DIM; w = MAX_DIM; } else { w = (w/h)*MAX_DIM; h = MAX_DIM; }
+                        }
+                        const cvs = document.createElement('canvas'); cvs.width = w; cvs.height = h;
+                        cvs.getContext('2d').drawImage(img, 0, 0, w, h);
+                        loadedImgBase64 = cvs.toDataURL('image/png');
+                    };
+                    img.src = ev.target.result;
+                }; 
+                reader.readAsDataURL(file); 
+            } 
         });
 
-        function renderPin(data) {
-            const el = document.createElement('div'); el.className = 'pin-marker'; el.id = data.properties.id;
-            new mapboxgl.Marker({ element: el }).setLngLat(data.geometry.coordinates).addTo(map);
-            el.addEventListener('click', (evt) => { evt.stopPropagation(); clearSelection(); selectGeo('marker', data.properties.id); });
+        document.getElementById('btn-add-marker').addEventListener('click', () => { const text = document.getElementById('marker-text').value; if(!text && !loadedImgBase64) { alert("Vui lòng nhập Text hoặc tải Ảnh trước khi ghim!"); return; } isAddingMarker = true; addingType = 'img'; map.getCanvas().style.cursor = 'crosshair'; });
+        document.getElementById('btn-add-pin').addEventListener('click', () => { isAddingMarker = true; addingType = 'pin'; map.getCanvas().style.cursor = 'crosshair'; });
+
+        function renderHTMLMarker(data) {
+            const el = document.createElement('div'); el.id = data.properties.id;
+            if (data.properties.markerType === 'pin') {
+                el.className = 'pin-marker'; 
+                // Cập nhật size dựa trên hệ số UI_SCALE
+                el.style.width = (44 * UI_SCALE) + 'px';
+                el.style.height = (44 * UI_SCALE) + 'px';
+                el.innerHTML = `<img src="${pinSVGDataURL}" style="width:100%; height:100%;">`;
+            } else {
+                el.className = 'custom-html-marker';
+                if (data.properties.imgBase64) { 
+                    const img = document.createElement('img'); img.src = data.properties.imgBase64; 
+                    let baseHeight = (data.properties.markerType === 'text') ? 60 * UI_SCALE : 130 * UI_SCALE; 
+                    img.style.height = (baseHeight * (data.properties.scale || 1)) + 'px'; 
+                    el.appendChild(img); 
+                }
+            }
+            
+            const mk = new mapboxgl.Marker({ element: el, draggable: false, anchor: 'bottom' }).setLngLat(data.geometry.coordinates).addTo(map);
+
+            mk.on('dragend', () => { const lngLat = mk.getLngLat(); let idx = state.marker.present.findIndex(x => x.properties.id === data.properties.id); if (idx > -1) { state.marker.present[idx].geometry.coordinates = [lngLat.lng, lngLat.lat]; selectGeo('marker', data.properties.id); } });
+            markerInstances[data.properties.id] = mk;
+            el.addEventListener('click', (evt) => { evt.stopPropagation(); clearSelection(); selectGeo('marker', data.properties.id); }); 
         }
 
-        document.getElementById('edit-marker-text').addEventListener('input', (e) => {
-            let item = state.marker.present.find(x => x.properties.id === activeObj.id);
-            if (item && item.properties.markerType === 'img') {
-                updateProp('marker', 'text', e.target.value);
-                const img = new Image(); img.onload = () => { if (map.hasImage(item.properties.imgId)) map.removeImage(item.properties.imgId); map.addImage(item.properties.imgId, img); syncToMap(); };
-                img.src = createTextImage(e.target.value);
-            }
+        document.getElementById('edit-marker-text').addEventListener('input', (e) => { 
+            let item = state.marker.present.find(x => x.properties.id === activeObj.id); 
+            if (item && item.properties.markerType === 'text') { 
+                item.properties.text = e.target.value; 
+                item.properties.imgBase64 = createTextImage(e.target.value); 
+                let imgCache = new Image(); imgCache.src = item.properties.imgBase64; item.imgObj = imgCache;
+                syncToMap(); 
+            } 
         });
         document.getElementById('edit-marker-scale').addEventListener('input', (e) => updateProp('marker', 'scale', parseFloat(e.target.value)));
-        document.getElementById('edit-marker-start').addEventListener('input', (e) => updateProp('marker', 'start', parseFloat(e.target.value)));
-        document.getElementById('edit-marker-end').addEventListener('input', (e) => updateProp('marker', 'end', parseFloat(e.target.value)));
         
-        document.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (activeObj) {
-                    if (activeObj.type === 'marker') { let el = document.getElementById(activeObj.id); if(el) el.remove(); }
-                    let arr = state[activeObj.type].present.filter(x => x.properties.id !== activeObj.id);
-                    saveState(activeObj.type, arr); clearSelection();
-                }
-            });
-        });
+        document.querySelectorAll('.btn-delete').forEach(btn => { btn.addEventListener('click', () => { if (activeObj) { state[activeObj.type].present = state[activeObj.type].present.filter(x => x.properties.id !== activeObj.id); clearSelection(); syncToMap(); } }); });
 
-        // ================= KỊCH BẢN CAMERA & 4K RENDER =================
-        function renderKeyframes() {
-            let list = document.getElementById('kf-list'); list.innerHTML = '';
-            state.cam.present.forEach((k, i) => {
-                let d = document.createElement('div'); d.className = 'kf-item';
-                d.innerHTML = `<span>Góc máy ${i + 1} (Zoom: ${k.zoom.toFixed(1)})</span> <button onclick="updateKF(${i})">Cập nhật</button>`;
-                list.appendChild(d);
+        function renderKfList() {
+            const list = document.getElementById('kf-list'); list.innerHTML = '';
+            state.cam.present.forEach((kf, idx) => {
+                const div = document.createElement('div'); div.className = 'kf-item';
+                div.innerHTML = `<span>🎥 Góc Cam ${idx + 1}</span>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn-update-kf" data-idx="${idx}" style="width:auto; margin:0; padding:4px 10px; background:#d97706;">Sửa</button>
+                    <button class="btn-del-kf" data-idx="${idx}" style="width:auto; margin:0; padding:4px 10px; background:#7f1d1d;">Xóa</button>
+                </div>`;
+                list.appendChild(div);
             });
+            document.querySelectorAll('.btn-del-kf').forEach(btn => { btn.addEventListener('click', (e) => { const idx = parseInt(e.target.getAttribute('data-idx')); state.cam.present.splice(idx, 1); renderKfList(); }); });
+            document.querySelectorAll('.btn-update-kf').forEach(btn => { btn.addEventListener('click', (e) => { const idx = parseInt(e.target.getAttribute('data-idx')); state.cam.present[idx] = { center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() }; alert(`Đã cập nhật Góc Cam ${idx + 1}!`); }); });
         }
-        document.getElementById('btn-add-kf').addEventListener('click', () => {
-            let arr = [...state.cam.present, { center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() }];
-            saveState('cam', arr);
-        });
-        window.updateKF = function(idx) {
-            let arr = [...state.cam.present];
-            arr[idx] = { center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() };
-            saveState('cam', arr); alert(`Đã cập nhật Góc máy ${idx+1}!`);
-        };
+        document.getElementById('btn-add-kf').addEventListener('click', () => { state.cam.present.push({ center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() }); renderKfList(); });
 
-        // Thuật toán Toán học Camera mượt mà điện ảnh
-        function cubicEaseInOut(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
-        function lerp(start, end, amt) { return (1 - amt) * start + amt * end; }
-        
+
         document.getElementById('btn-record').addEventListener('click', async () => {
-            let kfs = state.cam.present;
-            if (kfs.length < 2) return alert("Cần tối thiểu 2 góc Camera để tạo chuyển động!");
+            let kfs = state.cam.present; if (kfs.length < 2) return alert("Cần tối thiểu 2 góc Camera để xuất!");
             isRecording = true; clearSelection();
 
-            // Setup Render 4K resolution
-            const is169 = document.getElementById('btn-16-9').classList.contains('active');
-            const targetWidth = is169 ? 3840 : 2160; 
-            const targetHeight = is169 ? 2160 : 3840;
-            
-            const exportCanvas = document.createElement('canvas'); 
-            exportCanvas.width = targetWidth; exportCanvas.height = targetHeight;
-            const exportCtx = exportCanvas.getContext('2d');
+            map.getStyle().layers.forEach(l => {
+                if (l.type === 'symbol' || l.id.includes('label') || l.id.includes('place') || l.id.includes('poi')) {
+                    if (!l.id.includes('gl-draw')) {
+                        map.setLayoutProperty(l.id, 'visibility', 'none');
+                    }
+                }
+            });
 
-            const stream = exportCanvas.captureStream(60);
-            let mediaRecorder;
-            try { mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 50000000 }); } 
-            catch(e) { mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 50000000 }); }
+            const is169 = document.getElementById('btn-16-9').classList.contains('active');
+            const targetWidth = is169 ? BASE_RES_W : BASE_RES_H;
+            const targetHeight = is169 ? BASE_RES_H : BASE_RES_W;
+
+            // Đã LƯỢC BỎ TOÀN BỘ code resize container ở đây vì `#map-wrapper` đã chuẩn 4K sẵn rồi
+
+            const exportCanvas = document.createElement('canvas'); exportCanvas.width = targetWidth; exportCanvas.height = targetHeight;
+            const exportCtx = exportCanvas.getContext('2d'); exportCtx.imageSmoothingEnabled = true; exportCtx.imageSmoothingQuality = 'high';
             
-            const chunks = [];
-            const durationMs = parseInt(document.getElementById('video-duration').value);
+            let preferredMime = 'video/mp4;codecs=avc1.640033';
+            if (!MediaRecorder.isTypeSupported(preferredMime)) { preferredMime = 'video/webm;codecs=vp9'; }
+
+            const stream = exportCanvas.captureStream(0); 
+            let mediaRecorder = new MediaRecorder(stream, { mimeType: preferredMime, videoBitsPerSecond: 120000000 });
+            
+            const chunks = []; 
+            const durationMs = parseInt(document.getElementById('video-duration').value); const holdMs = 2000; const totalExportMs = durationMs + holdMs;
+            const fps = 60; const frameDurationMs = 1000 / fps; const totalFrames = Math.ceil(totalExportMs / frameDurationMs);
+            let currentFrameIndex = 0;
 
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(chunks, { type: mediaRecorder.mimeType })); a.download = `AnViet-Cinematic-4K.mp4`; a.click();
-                document.getElementById('recording-overlay').style.display = 'none'; document.getElementById('btn-record').disabled = false;
-                isRecording = false; syncToMap(); 
+                const ext = preferredMime.includes('mp4') ? 'mp4' : 'webm';
+                const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(chunks, { type: mediaRecorder.mimeType })); a.download = `AnViet-Smooth-Cinematic-4K.${ext}`; a.click();
+                
+                const showLabels = document.getElementById('toggle-labels').checked;
+                map.getStyle().layers.forEach(l => {
+                    if (l.type === 'symbol' || l.id.includes('label') || l.id.includes('place') || l.id.includes('poi')) {
+                        if (!l.id.includes('gl-draw')) {
+                            map.setLayoutProperty(l.id, 'visibility', showLabels ? 'visible' : 'none');
+                        }
+                    }
+                });
+                
+                document.getElementById('recording-overlay').style.display = 'none'; document.getElementById('btn-record').disabled = false; isRecording = false; syncToMap(); updateLayout(); animateEngine();
             };
 
-            mediaRecorder.start();
-            document.getElementById('btn-record').disabled = true; document.getElementById('recording-overlay').style.display = 'block';
+            mediaRecorder.start(); document.getElementById('btn-record').disabled = true; document.getElementById('recording-overlay').style.display = 'block';
 
-            const startTime = Date.now();
             const totalSegments = kfs.length - 1;
 
-            function renderFrame() {
-                let elapsed = Date.now() - startTime;
-                if (elapsed > durationMs) elapsed = durationMs;
-
-                document.getElementById('recording-overlay').innerText = `● ĐANG RENDER 4K: ${(elapsed / 1000).toFixed(1)}s`;
+            function renderStepOffline() {
+                if (currentFrameIndex >= totalFrames) { mediaRecorder.stop(); return; }
                 
-                // Đồng bộ nhịp Animation
-                animateEngine(); syncToMap(elapsed / 1000);
+                let simulatedElapsed = currentFrameIndex * frameDurationMs;
+                globalTime = simulatedElapsed; 
+                let curSec = simulatedElapsed / 1000;
+                document.getElementById('recording-overlay').innerText = `● ĐANG DỰNG FRAME 4K: ${((currentFrameIndex/totalFrames)*100).toFixed(0)}% (${curSec.toFixed(1)}s)`;
 
-                let rawProgress = elapsed / durationMs;
-                let easedProgress = cubicEaseInOut(rawProgress); // Áp dụng thuật toán nhanh dần giữa, chậm cuối
-                
-                let currentSegment = Math.floor(easedProgress * totalSegments);
-                if (currentSegment >= totalSegments) currentSegment = totalSegments - 1;
-                let segmentProgress = (easedProgress * totalSegments) - currentSegment;
-                
-                let kf1 = kfs[currentSegment]; let kf2 = kfs[currentSegment + 1];
-                map.jumpTo({ center: [lerp(kf1.center.lng, kf2.center.lng, segmentProgress), lerp(kf1.center.lat, kf2.center.lat, segmentProgress)], zoom: lerp(kf1.zoom, kf2.zoom, segmentProgress), pitch: lerp(kf1.pitch, kf2.pitch, segmentProgress), bearing: lerp(kf1.bearing, kf2.bearing, segmentProgress) });
+                let targetCenter, targetZoom, targetPitch, targetBearing;
 
-                // Tính toán Crop Center Canvas 4K xuất chuẩn
-                const mapCanvas = map.getCanvas();
-                const sw = mapCanvas.width; const sh = mapCanvas.height;
-                const scale = Math.max(targetWidth / sw, targetHeight / sh);
-                const drawW = sw * scale; const drawH = sh * scale;
-                const drawX = (targetWidth - drawW) / 2; const drawY = (targetHeight - drawH) / 2;
+                if (simulatedElapsed <= durationMs) {
+                    let rawProgress = simulatedElapsed / durationMs; 
+                    let easedProgress = cubicEaseInOut(rawProgress); 
+                    let currentSegment = Math.floor(easedProgress * totalSegments); if (currentSegment >= totalSegments) currentSegment = totalSegments - 1;
+                    let segmentProgress = (easedProgress * totalSegments) - currentSegment;
+                    
+                    let kf1 = kfs[currentSegment]; let kf2 = kfs[currentSegment + 1];
+                    targetCenter = [lerp(kf1.center.lng, kf2.center.lng, segmentProgress), lerp(kf1.center.lat, kf2.center.lat, segmentProgress)];
+                    targetZoom = lerp(kf1.zoom, kf2.zoom, segmentProgress); 
+                    targetPitch = lerp(kf1.pitch, kf2.pitch, segmentProgress);
+                    targetBearing = lerp(kf1.bearing, kf2.bearing, segmentProgress);
+                } else {
+                    let holdElapsed = simulatedElapsed - durationMs; let holdProgress = holdElapsed / holdMs; let finalKf = kfs[kfs.length - 1];
+                    targetCenter = [finalKf.center.lng, finalKf.center.lat]; targetZoom = finalKf.zoom + (holdProgress * 0.12); targetPitch = finalKf.pitch; targetBearing = finalKf.bearing;
+                }
 
-                exportCtx.fillStyle = '#000'; exportCtx.fillRect(0, 0, targetWidth, targetHeight);
-                exportCtx.drawImage(mapCanvas, drawX, drawY, drawW, drawH);
+                updateMapAnimations(globalTime);
+                map.jumpTo({ center: targetCenter, zoom: targetZoom, pitch: targetPitch, bearing: targetBearing });
 
-                if (elapsed < durationMs) requestAnimationFrame(renderFrame);
-                else mediaRecorder.stop();
+                map.once('render', () => {
+                    const mapCanvas = map.getCanvas(); 
+                    exportCtx.fillStyle = '#000'; exportCtx.fillRect(0, 0, targetWidth, targetHeight);
+                    
+                    // Render thẳng cẳng, không cần crop toán học hay bù đắp bù trừ gì nữa.
+                    exportCtx.drawImage(mapCanvas, 0, 0, targetWidth, targetHeight);
+
+                    state.marker.present.forEach(m => {
+                        let s = parseFloat(m.properties.start) || 0; let e = parseFloat(m.properties.end) || 999;
+                        if (curSec <= s || curSec >= e) return; 
+
+                        let fadeOp = 1;
+                        if (curSec < s + 0.5) fadeOp = (curSec - s) / 0.5;
+                        else if (curSec > e - 0.5) fadeOp = (e - curSec) / 0.5;
+
+                        if (m.imgObj && m.imgObj.complete) {
+                            // Tọa độ project lấy trực tiếp trên map 4K nên sẽ chính xác 100%
+                            const point = map.project(m.geometry.coordinates);
+                            const markerDrawX = point.x; 
+                            const markerDrawY = point.y;
+
+                            exportCtx.globalAlpha = fadeOp; 
+                            
+                            if (m.properties.markerType === 'pin') {
+                                let w = 44 * UI_SCALE; 
+                                let h = 44 * UI_SCALE;
+                                exportCtx.drawImage(m.imgObj, markerDrawX - w/2, markerDrawY - h, w, h);
+                            } else {
+                                let baseHeight = (m.properties.markerType === 'text') ? 60 * UI_SCALE : 130 * UI_SCALE;
+                                let h = baseHeight * (m.properties.scale || 1); 
+                                let w = (m.imgObj.width / m.imgObj.height) * h;
+                                exportCtx.drawImage(m.imgObj, markerDrawX - w/2, markerDrawY - h, w, h); 
+                            }
+                            
+                            exportCtx.globalAlpha = 1.0;
+                        }
+                    });
+
+                    stream.getVideoTracks()[0].requestFrame(); 
+                    currentFrameIndex++;
+                    setTimeout(renderStepOffline, 1); 
+                });
             }
-            renderFrame();
+            renderStepOffline();
         });
-
-        // ================= GIAO DIỆN FRAME 9:16 (MASK) =================
-        function updateMask() {
-            const is169 = document.getElementById('btn-16-9').classList.contains('active');
-            const l = document.getElementById('mask-left'); const r = document.getElementById('mask-right');
-            if (is169) {
-                l.style.width = '0'; r.style.width = '0';
-            } else {
-                // Tính toán vùng đen cần che để lộ đúng khoảng giữa 9:16
-                let w = document.getElementById('workspace').clientWidth;
-                let h = document.getElementById('workspace').clientHeight;
-                let targetW = h * (9/16);
-                let maskW = (w - targetW) / 2;
-                l.style.width = Math.max(0, maskW) + 'px';
-                r.style.width = Math.max(0, maskW) + 'px';
-            }
-        }
-        document.getElementById('btn-16-9').addEventListener('click', (e) => { document.getElementById('btn-9-16').classList.remove('active'); e.target.classList.add('active'); updateMask(); });
-        document.getElementById('btn-9-16').addEventListener('click', (e) => { document.getElementById('btn-16-9').classList.remove('active'); e.target.classList.add('active'); updateMask(); });
-        window.addEventListener('resize', updateMask);
         
-        document.getElementById('toggle-labels').addEventListener('change', (e) => {
-            map.getStyle().layers.forEach(l => { if (l.type === 'symbol' && l.id !== 'lyr-markers') map.setLayoutProperty(l.id, 'visibility', e.target.checked ? 'visible' : 'none'); });
-        });
+        function cubicEaseInOut(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+        function lerp(start, end, amt) { return (1 - amt) * start + amt * end; }
+        document.getElementById('toggle-labels').addEventListener('change', (e) => { map.getStyle().layers.forEach(l => { if (l.type === 'symbol' && l.id !== 'lyr-markers') map.setLayoutProperty(l.id, 'visibility', e.target.checked ? 'visible' : 'none'); }); });
     </script>
 </body>
 </html>
