@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>An Viet Map Studio Pro V7.5</title>
-    
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <title>An Viet Map Studio - Cinematic 4K (V8.0)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
     
@@ -19,485 +17,451 @@
 
     <style>
         :root {
-            --bg-dark: #121212; --panel-bg: #1e1e1e; --panel-sub: #2a2a2a;
-            --text: #ffffff; --border: #333333; --primary: #3b82f6; --primary-hover: #2563eb;
+            --bg-dark: #070709; --panel-bg: #111116; --panel-sub: #1a1a24;
+            --text: #f0f0f5; --border: #2a2a35; --primary: #3b82f6; --primary-hover: #2563eb;
+            --cobalt-dark: #0a192f; --cobalt-deep: #112240; --cobalt-main: #1d4ed8; --cobalt-light: #2563eb; --cobalt-sky: #60a5fa;
         }
 
         body { margin: 0; display: flex; height: 100vh; background-color: var(--bg-dark); color: var(--text); font-family: 'Manrope', sans-serif; font-size: 14px; overflow: hidden; }
         
-        #sidebar { width: 380px; background: var(--panel-bg); display: flex; flex-direction: column; border-right: 1px solid var(--border); z-index: 10; overflow-y: auto; padding: 20px; gap: 20px; box-sizing: border-box; }
+        #sidebar { width: 400px; background: var(--panel-bg); display: flex; flex-direction: column; border-right: 1px solid var(--border); z-index: 100; overflow-y: auto; padding: 20px; gap: 20px; box-sizing: border-box; }
         
         .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        .header h2 { margin: 0; font-weight: 800; font-size: 20px; letter-spacing: 1px; }
+        .header h2 { margin: 0; color: var(--cobalt-sky); font-size: 21px; font-weight: 800; letter-spacing: 1px; }
         
         .box { background: var(--panel-sub); padding: 18px; border-radius: 12px; border: 1px solid var(--border); }
-        .box h3 { margin: 0 0 15px 0; font-size: 15px; font-weight: 800; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        .box h3 { margin: 0 0 15px 0; font-size: 15px; font-weight: 800; color: var(--cobalt-sky); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
         
         button { font-family: 'Manrope', sans-serif; color: white; background: #444; border: none; padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 700; font-size: 13px; width: 100%; margin-bottom: 8px; }
-        button:hover { background: #555; }
-        button.action { background: var(--primary); }
-        button.action:hover { background: var(--primary-hover); }
-        button.pin-btn { background: #dc2626; }
-        button.pin-btn:hover { background: #b91c1c; }
-        button.active { background: #fff !important; color: #000 !important; }
+        button.action { background: var(--cobalt-main); } button.action:hover { background: var(--cobalt-light); }
         button.record { background: #10b981; font-size: 15px; font-weight: 800; padding: 16px; text-transform: uppercase; }
         button.record:hover { background: #059669; }
+        button.active { background: #fff !important; color: #000 !important; font-weight: 800; }
+        
+        .ur-row { display: flex; gap: 8px; margin-top: 5px; margin-bottom: 15px;}
+        .ur-row button { flex: 1; padding: 8px; font-size: 12px; background: #222230; border: 1px solid #333344; color: #aaa; margin:0;}
+        .ur-row button:hover { background: #333344; color: #fff; }
 
         input[type="text"], input[type="file"], input[type="range"], input[type="color"], input[type="number"], select { width: 100%; box-sizing: border-box; margin-bottom: 12px; font-family: 'Manrope', sans-serif; font-weight: 600; }
-        input[type="text"], input[type="number"], select { background: #111; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 8px; }
+        input[type="text"], input[type="number"], select { background: #000; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 8px; }
         
         .row { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; font-size: 13px; }
         .row label { width: 110px; flex-shrink: 0; opacity: 0.9; }
 
-        #workspace { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; padding: 20px; position: relative; }
-        #map-wrapper { position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.5); background: #111; border-radius: 8px; overflow: hidden; transition: 0.3s; }
-        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        /* Workspace & Map */
+        #workspace { flex: 1; position: relative; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         
-        .ratio-16-9 { width: 100%; max-width: 1366px; aspect-ratio: 16 / 9; }
-        .ratio-9-16 { height: 100%; max-height: 850px; aspect-ratio: 9 / 16; }
+        /* Mặt nạ Đen che viền khi chọn dọc 9:16 */
+        .mask { position: absolute; background: rgba(0,0,0,0.9); z-index: 50; transition: 0.3s; pointer-events: none; }
+        #mask-left { top: 0; bottom: 0; left: 0; width: 0; border-right: 2px solid var(--cobalt-main); }
+        #mask-right { top: 0; bottom: 0; right: 0; width: 0; border-left: 2px solid var(--cobalt-main); }
         
-        #recording-overlay { display: none; position: absolute; top: 30px; right: 30px; background: rgba(220, 38, 38, 0.95); padding: 10px 24px; border-radius: 20px; font-weight: 800; font-size: 16px; z-index: 1000; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .hint { font-size: 12px; color: #aaa; display: block; margin-bottom: 10px; line-height: 1.5; }
-        .highlight { border-color: var(--primary) !important; box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+        #recording-overlay { display: none; position: absolute; top: 30px; right: 30px; background: rgba(220, 38, 38, 0.95); padding: 10px 24px; border-radius: 20px; font-weight: 800; font-size: 16px; z-index: 1000; }
+        .highlight { border-color: var(--cobalt-sky) !important; box-shadow: 0 0 15px rgba(96, 165, 250, 0.2); }
 
-        .mapboxgl-ctrl-geocoder { width: 100% !important; max-width: 100% !important; background: #111 !important; border: 1px solid var(--border); border-radius: 8px; box-shadow: none !important; }
+        .mapboxgl-ctrl-geocoder { width: 100% !important; max-width: 100% !important; background: #000 !important; border: 1px solid var(--border); border-radius: 8px; box-shadow: none !important; }
         .mapboxgl-ctrl-geocoder--input { color: #fff !important; font-family: 'Manrope', sans-serif; }
 
-        /* Marker HTML Styles */
-        .custom-html-marker { cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .custom-html-marker img { border: 2px solid var(--primary); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
-        .custom-html-marker .marker-label { background: rgba(7,7,9,0.9); color: white; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; margin-top: 6px; border: 1px solid var(--primary); }
-        .custom-html-marker.selected img { border-color: #00ffcc !important; box-shadow: 0 0 25px rgba(0, 255, 204, 0.6) !important; }
+        /* Marker HTML - Khung chọn */
+        .custom-html-marker { cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .custom-html-marker img { border-radius: 8px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); transition: 0.2s; }
+        .custom-html-marker .marker-label { background: rgba(0,0,0,0.85); color: white; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 700; margin-top: 6px; border: 1px solid #444; }
         
-        /* Location Pin Glowing Style */
+        /* Hiệu ứng Đang được chọn (Selection Box) */
+        .custom-html-marker.selected::before {
+            content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border: 2px dashed #00ffcc; border-radius: 12px; animation: dashSpin 10s linear infinite; pointer-events: none;
+        }
+        @keyframes dashSpin { to { stroke-dashoffset: -1000; } }
+
+        /* Pin Location Trắng + Glow */
         .pin-marker {
             width: 44px; height: 44px;
-            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24c0-6.627-5.373-12-12-12zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z" fill="%23ef4444"/></svg>');
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24c0-6.627-5.373-12-12-12zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z" fill="%23ffffff"/></svg>');
             background-size: contain; background-repeat: no-repeat; background-position: center bottom;
             transform-origin: center bottom;
-            animation: pinGlow 1.5s infinite alternate ease-in-out;
-            cursor: pointer;
+            filter: drop-shadow(0 0 12px rgba(255,255,255,0.8)); cursor: pointer;
         }
-        .pin-marker.selected { filter: drop-shadow(0 0 15px #00ffcc); }
-        @keyframes pinGlow {
-            0% { filter: drop-shadow(0 0 5px rgba(239,68,68,0.5)); transform: translateY(0) scale(1); }
-            100% { filter: drop-shadow(0 0 20px rgba(239,68,68,1)); transform: translateY(-5px) scale(1.05); }
-        }
-
-        /* Custom Dual Slider Timeline */
-        .timeline-container { position: relative; height: 30px; margin: 15px 0 5px 0; }
-        .timeline-track { position: absolute; top: 12px; height: 6px; background: #444; border-radius: 3px; width: 100%; }
-        .timeline-fill { position: absolute; top: 12px; height: 6px; background: var(--primary); border-radius: 3px; pointer-events: none; }
-        .dual-range { position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; -webkit-appearance: none; background: transparent; margin: 0; height: 30px;}
-        .dual-range::-webkit-slider-thumb { pointer-events: all; position: relative; z-index: 1; -webkit-appearance: none; width: 18px; height: 18px; background: #fff; border-radius: 50%; cursor: pointer; box-shadow: 0 0 5px rgba(0,0,0,0.5); margin-top: -6px; }
-        .dual-range::-webkit-slider-runnable-track { background: transparent; height: 6px; }
+        .pin-marker.selected { filter: drop-shadow(0 0 20px #00ffcc); }
+        
+        /* Keyframe item */
+        .kf-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #222; }
+        .kf-item button { width: auto; margin: 0; padding: 4px 10px; font-size: 11px; background: var(--cobalt-main); }
     </style>
 </head>
 <body>
 
     <div id="sidebar">
         <div class="header">
-            <h2>MAP STUDIO V7.5</h2>
+            <h2>AN VIET MAP STUDIO (V8.0)</h2>
         </div>
 
         <div class="box">
-            <h3>🔍 Tìm Kiếm Vị Trí</h3>
+            <h3>🔍 Tìm Kiếm Nhanh</h3>
             <div id="geocoder-container"></div>
         </div>
         
         <div class="box">
-            <h3>1. Khung Hình (Fix 9:16)</h3>
+            <h3>1. Khung Hình & Layer</h3>
             <div style="display: flex; gap: 8px;">
-                <button id="btn-16-9" class="active">16:9 Ngang</button>
-                <button id="btn-9-16">9:16 Dọc</button>
+                <button id="btn-16-9" class="active" style="background:var(--cobalt-deep);">16:9 Ngang (Youtube)</button>
+                <button id="btn-9-16" style="background:var(--cobalt-deep);">9:16 Dọc (Tiktok)</button>
             </div>
             <div class="row" style="margin-top: 10px;">
                 <input type="checkbox" id="toggle-labels" checked style="width:auto; margin:0 8px 0 0;">
-                <label for="toggle-labels" style="width:auto;">Chữ địa danh mặc định</label>
+                <label for="toggle-labels" style="width:auto;">Gắn nhãn Mapbox gốc</label>
             </div>
         </div>
 
         <div class="box" id="box-line">
-            <h3>2. Vẽ Giao Thông (Line)</h3>
-            <button id="btn-draw-line" class="action">🛣️ Bắt đầu vẽ Cung đường</button>
+            <h3>2. Giao Thông (Line)</h3>
+            <div class="ur-row">
+                <button onclick="undo('line')">↩️ Undo</button>
+                <button onclick="redo('line')">↪️ Redo</button>
+            </div>
+            <button id="btn-draw-line" class="action">🛣️ Vẽ Cung đường mới</button>
             <div id="editor-line" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; display: none;">
                 <div class="row">
                     <label>Hiệu ứng:</label>
                     <select id="edit-line-anim">
-                        <option value="Preset 1">Preset 1: Glowing Dash</option>
-                        <option value="Preset 2">Preset 2: Color Chase</option>
-                        <option value="Preset 3">Preset 3: LED Dash</option>
+                        <option value="Preset 1">Core Lõi + Dash chạy</option>
+                        <option value="Preset 2">Gradient Đuổi màu (Loop)</option>
+                        <option value="Preset 3">LED đứt đoạn chớp sáng</option>
                     </select>
                 </div>
                 <div class="row"><label>Màu Line chính:</label><input type="color" id="edit-line-color"></div>
-                <div class="row" id="row-line-color2" style="display: none;"><label>Màu Line thứ 2:</label><input type="color" id="edit-line-color2"></div>
-                <div class="row"><label>Độ dày:</label><input type="range" id="edit-line-width" min="3" max="25"></div>
-                <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa đối tượng này</button>
+                <div class="row" id="row-line-color2" style="display: none;"><label>Màu Line phụ (Đuổi):</label><input type="color" id="edit-line-color2"></div>
+                <div class="row"><label>Độ dày:</label><input type="range" id="edit-line-width" min="3" max="30"></div>
+                <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa Tuyến này</button>
             </div>
         </div>
 
         <div class="box" id="box-shape">
-            <h3>3. Vẽ Khu Vực (Shape)</h3>
-            <button id="btn-draw-shape" class="action">🟩 Bắt đầu vẽ Khu vực</button>
+            <h3>3. Phân Khu (Shape)</h3>
+            <div class="ur-row">
+                <button onclick="undo('shape')">↩️ Undo</button>
+                <button onclick="redo('shape')">↪️ Redo</button>
+            </div>
+            <button id="btn-draw-shape" class="action">🟩 Vẽ Khu vực mới</button>
             <div id="editor-shape" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; display: none;">
                 <div class="row">
                     <label>Hiệu ứng:</label>
                     <select id="edit-shape-anim">
-                        <option value="Breathing">Breathing</option>
-                        <option value="Pulsing Glow">Pulsing Glow</option>
-                        <option value="Chasing Border">Chasing Border</option>
-                        <option value="Static">Static</option>
+                        <option value="Breathing">Khối màu nhịp thở</option>
+                        <option value="Pulsing Glow">Chớp sáng viền ngoài</option>
+                        <option value="Chasing Border">Viền chạy vòng quanh</option>
+                        <option value="Static">Tĩnh tại</option>
                     </select>
                 </div>
                 <div class="row"><label>Màu khối:</label><input type="color" id="edit-shape-color"></div>
-                <div class="row"><label>Độ mờ nền:</label><input type="range" id="edit-shape-opacity" min="0" max="100"></div>
-                <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa đối tượng này</button>
+                <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa Vùng này</button>
             </div>
         </div>
 
         <div class="box" id="box-marker">
-            <h3>4. Chữ, Ảnh & Location</h3>
+            <h3>4. Nội dung (Timeline)</h3>
             <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                <button id="btn-add-marker" class="action" style="margin-bottom:0;">🖼️ Thêm Chữ / Ảnh</button>
-                <button id="btn-add-pin" class="pin-btn" style="margin-bottom:0;">📍 Thêm Location</button>
+                <button id="btn-add-marker" class="action" style="margin-bottom:0;">🖼️ Thêm Text/Ảnh</button>
+                <button id="btn-add-pin" style="background:#dc2626; margin-bottom:0;">📍 Thêm Location</button>
             </div>
-            
-            <input type="text" id="marker-text" placeholder="Gõ nội dung Text (Manrope)...">
+            <input type="text" id="marker-text" placeholder="Gõ Text (Font Manrope)...">
             <input type="file" id="marker-file" accept="image/*">
             
             <div id="editor-marker" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; display: none;">
                 <input type="text" id="edit-marker-text">
                 <div class="row"><label>Kích thước:</label><input type="range" id="edit-marker-scale" min="0.3" max="5" step="0.1"></div>
+                <div class="row"><label>Hiện lúc (s):</label><input type="number" id="edit-marker-start" min="0" step="0.5"></div>
+                <div class="row"><label>Ẩn lúc (s):</label><input type="number" id="edit-marker-end" min="0" step="0.5"></div>
                 <button class="btn-delete" style="background: #7f1d1d; margin-top: 10px;">🗑️ Xóa đối tượng này</button>
             </div>
         </div>
 
-        <div class="box" id="box-timeline" style="display: none; border-color: var(--primary);">
-            <h3>⏱️ 5. Timeline Xuất Hiện</h3>
-            <span class="hint" id="timeline-hint" style="color: var(--primary); font-weight: 600;">Đang cấu hình: ...</span>
-            
-            <div class="timeline-container">
-                <div class="timeline-track"></div>
-                <div class="timeline-fill" id="tl-fill"></div>
-                <input type="range" id="edit-timeline-start" class="dual-range" min="0" step="0.1" value="0">
-                <input type="range" id="edit-timeline-end" class="dual-range" min="0" step="0.1" value="10">
-            </div>
-            <div style="text-align: center; color: var(--primary); font-weight: bold; margin-bottom: 5px;" id="time-label">0.0s - 10.0s</div>
-        </div>
-
         <div class="box">
-            <h3>6. Kịch Bản & Quay Video</h3>
-            <button id="btn-add-kf" style="background: #252525; border: 1px solid #555;">+ Lưu Góc Máy Đang Xem</button>
-            <div id="kf-list" style="max-height: 90px; overflow-y:auto; margin-bottom:15px; font-size:12px; color:#aaa; background:#111; padding:10px; border-radius:8px;"></div>
+            <h3>5. Camera & Export (4K)</h3>
+            <div class="ur-row">
+                <button onclick="undo('cam')">↩️ Undo Cam</button>
+                <button onclick="redo('cam')">↪️ Redo Cam</button>
+            </div>
+            <button id="btn-add-kf" style="background: var(--cobalt-dark); border: 1px solid var(--cobalt-light);">+ Thêm Mốc Camera Đang Xem</button>
+            <div id="kf-list" style="max-height: 120px; overflow-y:auto; margin-bottom:15px; background:#000; padding:10px; border-radius:8px;"></div>
             
             <div class="row">
-                <label>Tg Di Chuyển:</label>
+                <label>Thời lượng (ms):</label>
                 <select id="video-duration">
-                    <option value="5000">5 Giây</option>
+                    <option value="5000">5 Giây (Nhanh)</option>
                     <option value="8000">8 Giây</option>
-                    <option value="10000" selected>10 Giây</option>
-                    <option value="15000">15 Giây</option>
+                    <option value="10000" selected>10 Giây (Chuẩn)</option>
+                    <option value="15000">15 Giây (Cinematic)</option>
                 </select>
             </div>
-            <button id="btn-record" class="record">🎬 XUẤT VIDEO SẮC NÉT (.MP4)</button>
+            <button id="btn-record" class="record">🎬 RENDER 4K .MP4</button>
         </div>
     </div>
 
     <div id="workspace">
-        <div id="map-wrapper" class="ratio-16-9">
-            <div id="map"></div>
-        </div>
-        <div id="recording-overlay">● ĐANG QUAY: 0.0s</div>
+        <div id="mask-left" class="mask"></div>
+        <div id="mask-right" class="mask"></div>
+        
+        <div id="map"></div>
+        <div id="recording-overlay">● ĐANG RENDER: 0.0s</div>
     </div>
 
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW52aWV0IiwiYSI6ImNtcjh5ajh0ajAyYTAyeXNlaWxjZDI2bG0ifQ.RQ7VjsqIxSBFgYdLByo1pw';
 
-        let map, draw;
-        let state = { line: [], shape: [], marker: [] };
-        let keyframes = [];
-        let activeObj = null; 
-        let isAddingMarker = false;
-        let addingType = ''; // 'img' or 'pin'
-        let loadedImgBase64 = null;
-        let isRecording = false;
+        // State Management
+        let state = {
+            line: { past: [], present: [], future: [] },
+            shape: { past: [], present: [], future: [] },
+            marker: { present: [] },
+            cam: { past: [], present: [], future: [] }
+        };
+        let activeObj = null; // {type, id}
+        let isAddingMarker = false, addingType = '';
+        let loadedImgBase64 = null, isRecording = false;
 
-        map = new mapboxgl.Map({
+        // Initialize Map
+        const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/satellite-streets-v12',
             center: [106.9950, 20.9485],
             zoom: 15.5, pitch: 45, bearing: 0,
             preserveDrawingBuffer: true,
-            fog: false // Tắt hoàn toàn sương mù
+            fog: false // Tắt sương mù để viễn cảnh rõ nét
         });
 
-        draw = new MapboxDraw({ displayControlsDefault: false });
+        // Initialize Draw (Dùng để hiển thị Node khi Edit)
+        const draw = new MapboxDraw({ 
+            displayControlsDefault: false,
+            userProperties: true,
+            styles: [
+                // Ẩn line mặc định của draw (vì ta dùng layer custom riêng)
+                { "id": "gl-draw-line-inactive", "type": "line", "filter": ["all", ["==", "active", "false"], ["==", "$type", "LineString"]], "paint": { "line-opacity": 0 } },
+                { "id": "gl-draw-line-active", "type": "line", "filter": ["all", ["==", "$type", "LineString"], ["==", "active", "true"]], "paint": { "line-opacity": 0 } },
+                { "id": "gl-draw-polygon-inactive", "type": "fill", "filter": ["all", ["==", "active", "false"], ["==", "$type", "Polygon"]], "paint": { "fill-opacity": 0 } },
+                { "id": "gl-draw-polygon-active", "type": "fill", "filter": ["all", ["==", "active", "true"], ["==", "$type", "Polygon"]], "paint": { "fill-opacity": 0 } },
+                // Chỉ hiện các điểm Node (Vertices) màu cam khi click vào line/shape để Sale nắn chỉnh
+                { "id": "gl-draw-polygon-and-line-vertex-active", "type": "circle", "filter": ["all", ["==", "meta", "vertex"], ["==", "$type", "Point"]], "paint": { "circle-radius": 5, "circle-color": "#ff7300" } }
+            ]
+        });
         map.addControl(draw);
 
         const geocoder = new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl: mapboxgl, placeholder: 'Tìm địa điểm...', marker: false });
         document.getElementById('geocoder-container').appendChild(geocoder.onAdd(map));
 
         map.on('load', () => {
-            // Tăng nhẹ sáng vùng tối, không chỉnh màu gắt
-            if (map.getLayer('satellite')) {
-                map.setPaintProperty('satellite', 'raster-brightness-min', 0.15);
-            }
-
-            // --- LAYERS KHU VỰC (SHAPE) ---
-            map.addSource('src-shapes', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-            map.addLayer({
-                'id': 'lyr-shape-fill', 'type': 'fill', 'source': 'src-shapes',
-                'paint': { 'fill-color': ['get', 'color'], 'fill-opacity': ['*', ['get', 'baseOpacity'], ['get', 'fadeOpacity']] }
-            });
-            map.addLayer({
-                'id': 'lyr-shape-border', 'type': 'line', 'source': 'src-shapes',
-                'paint': { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': ['get', 'fadeOpacity'] }
-            });
-
-            // --- LAYERS GIAO THÔNG (LINE PRESETS) ---
-            map.addSource('src-lines', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            // Không áp bộ lọc màu nào cả, giữ màu vệ tinh thật
             
-            // Outer Glow
-            map.addLayer({
-                'id': 'lyr-line-glow-outer', 'type': 'line', 'source': 'src-lines',
-                'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                'paint': { 
-                    'line-color': ['get', 'color'], 
-                    'line-width': ['*', ['get', 'width'], 3], 
-                    'line-blur': 15, 
-                    'line-opacity': ['*', ['get', 'fadeOpacity'], 0.5] 
-                }
-            });
-            // Inner Glow
-            map.addLayer({
-                'id': 'lyr-line-glow-inner', 'type': 'line', 'source': 'src-lines',
-                'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                'paint': { 
-                    'line-color': ['get', 'color'], 
-                    'line-width': ['*', ['get', 'width'], 1.5], 
-                    'line-blur': 5, 
-                    'line-opacity': ['*', ['get', 'fadeOpacity'], 0.8] 
-                }
-            });
-            // Core (Ẩn nếu là Preset 3)
-            map.addLayer({
-                'id': 'lyr-line-core', 'type': 'line', 'source': 'src-lines',
-                'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                'paint': { 
-                    'line-color': ['get', 'color'], 
-                    'line-width': ['get', 'width'], 
-                    'line-opacity': ['*', ['get', 'fadeOpacity'], ['case', ['==', ['get', 'anim'], 'Preset 3'], 0, 1]] 
-                }
-            });
-
-            // 3 Lớp Dash tách biệt cho 3 Preset để chạy animation riêng
-            map.addLayer({
-                'id': 'lyr-line-dash-p1', 'type': 'line', 'source': 'src-lines',
-                'filter': ['==', ['get', 'anim'], 'Preset 1'],
-                'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                'paint': { 'line-color': '#ffffff', 'line-width': ['*', ['get', 'width'], 0.4], 'line-opacity': ['get', 'fadeOpacity'] }
-            });
-            map.addLayer({
-                'id': 'lyr-line-dash-p2', 'type': 'line', 'source': 'src-lines',
-                'filter': ['==', ['get', 'anim'], 'Preset 2'],
-                'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                'paint': { 'line-color': ['get', 'color2'], 'line-width': ['get', 'width'], 'line-opacity': ['get', 'fadeOpacity'] }
-            });
-            map.addLayer({
-                'id': 'lyr-line-dash-p3', 'type': 'line', 'source': 'src-lines',
-                'filter': ['==', ['get', 'anim'], 'Preset 3'],
-                'layout': { 'line-join': 'round', 'line-cap': 'round' },
-                'paint': { 'line-color': ['get', 'color'], 'line-width': ['get', 'width'], 'line-opacity': ['get', 'fadeOpacity'] }
-            });
-
-            // --- LAYERS MARKER (WEBGL) ---
+            // --- NGUỒN DỮ LIỆU ---
+            map.addSource('src-shapes', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addSource('src-lines', { type: 'geojson', lineMetrics: true, data: { type: 'FeatureCollection', features: [] } });
             map.addSource('src-markers', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-            map.addLayer({
-                'id': 'lyr-markers', 'type': 'symbol', 'source': 'src-markers',
-                'layout': { 'icon-image': ['get', 'imgId'], 'icon-size': ['get', 'scale'], 'icon-allow-overlap': true, 'icon-ignore-placement': true },
-                'paint': { 'icon-opacity': ['get', 'fadeOpacity'] }
-            });
 
-            // --- KHỞI ĐỘNG VÒNG LẶP ANIMATION ---
-            animateLayers();
+            // --- SHAPE LAYERS ---
+            map.addLayer({ 'id': 'lyr-shape-fill', 'type': 'fill', 'source': 'src-shapes', 'paint': { 'fill-color': ['get', 'color'], 'fill-opacity': ['*', ['get', 'baseOpacity'], ['get', 'fadeOpacity']] } });
+            map.addLayer({ 'id': 'lyr-shape-border', 'type': 'line', 'source': 'src-shapes', 'paint': { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': ['get', 'fadeOpacity'] } });
+
+            // --- LINE LAYERS ---
+            // Glow Mờ tỏa rộng (Chỉ cho Preset 1, 3)
+            map.addLayer({ 'id': 'lyr-line-glow', 'type': 'line', 'source': 'src-lines', 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color'], 'line-width': ['*', ['get', 'width'], 3], 'line-blur': 12, 'line-opacity': ['case', ['==', ['get', 'anim'], 'Preset 2'], 0, ['*', 0.6, ['get', 'fadeOpacity']]] } });
+            
+            // Core cứng (Cho Preset 1, 2. Ẩn ở Preset 3)
+            map.addLayer({ 'id': 'lyr-line-core', 'type': 'line', 'source': 'src-lines', 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['get', 'color'], 'line-width': ['get', 'width'], 'line-opacity': ['case', ['==', ['get', 'anim'], 'Preset 3'], 0, ['get', 'fadeOpacity']] } });
+            
+            // Preset 2: Gradient Đuổi (Layer đặc biệt đè lên Core)
+            map.addLayer({ 'id': 'lyr-line-grad', 'type': 'line', 'source': 'src-lines', 'filter': ['==', ['get', 'anim'], 'Preset 2'], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-width': ['get', 'width'], 'line-opacity': ['get', 'fadeOpacity'], 'line-gradient': ['interpolate', ['linear'], ['line-progress'], 0, "blue", 1, "red"] } }); // Default, updated in loop
+
+            // Dash chạy (Preset 1 & 3). Preset 3 sẽ có bề rộng bự hơn và blur để tạo cảm giác LED
+            map.addLayer({ 'id': 'lyr-line-dash', 'type': 'line', 'source': 'src-lines', 'filter': ['!=', ['get', 'anim'], 'Preset 2'], 'layout': { 'line-join': 'round', 'line-cap': 'round' }, 'paint': { 'line-color': ['case', ['==', ['get', 'anim'], 'Preset 3'], ['get', 'color'], '#ffffff'], 'line-width': ['case', ['==', ['get', 'anim'], 'Preset 3'], ['*', ['get', 'width'], 1.2], ['*', ['get', 'width'], 0.4]], 'line-blur': ['case', ['==', ['get', 'anim'], 'Preset 3'], 2, 0], 'line-dasharray': [0, 4, 3], 'line-opacity': ['get', 'fadeOpacity'] } });
+
+            // --- MARKER WEBGL ---
+            map.addLayer({ 'id': 'lyr-markers', 'type': 'symbol', 'source': 'src-markers', 'layout': { 'icon-image': ['get', 'imgId'], 'icon-size': ['get', 'scale'], 'icon-allow-overlap': true, 'icon-ignore-placement': true }, 'paint': { 'icon-opacity': ['get', 'fadeOpacity'] } });
+
+            animateEngine();
         });
 
-        // Animation Sequences
-        const seqP1 = [[4,4], [0,1,4,3], [0,2,4,2], [0,3,4,1], [0,4,4,0], [1,4,3,0], [2,4,2,0], [3,4,1,0]];
-        const seqP2 = [[8,8], [0,2,8,6], [0,4,8,4], [0,6,8,2], [0,8,8,0], [2,8,6,0], [4,8,4,0], [6,8,2,0]];
-
-        function animateLayers() {
-            let time = performance.now();
+        // ================= ANIMATION ENGINE ĐỘNG LỰC HỌC =================
+        const p1Seq = [[4,4], [0,1,4,3], [0,2,4,2], [0,3,4,1], [0,4,4,0], [1,4,3,0], [2,4,2,0], [3,4,1,0]];
+        function animateEngine() {
+            let t = performance.now();
             
-            // Animate Lines
-            let step1 = Math.floor(time / 60) % seqP1.length;
-            let step2 = Math.floor(time / 80) % seqP2.length;
+            // Dash & LED
+            let s1 = Math.floor(t / 50) % p1Seq.length;
+            if (map.getLayer('lyr-line-dash')) map.setPaintProperty('lyr-line-dash', 'line-dasharray', p1Seq[s1]);
             
-            if (map.getLayer('lyr-line-dash-p1')) map.setPaintProperty('lyr-line-dash-p1', 'line-dasharray', seqP1[step1]);
-            if (map.getLayer('lyr-line-dash-p2')) map.setPaintProperty('lyr-line-dash-p2', 'line-dasharray', seqP2[step2]);
-            if (map.getLayer('lyr-line-dash-p3')) map.setPaintProperty('lyr-line-dash-p3', 'line-dasharray', seqP1[step1]);
-
-            // Animate Shapes (Data-driven using expressions)
-            let breath = (Math.sin(time / 400) * 0.3) + 0.7; // 0.4 to 1.0 multiplier
-            if (map.getLayer('lyr-shape-fill')) {
-                map.setPaintProperty('lyr-shape-fill', 'fill-opacity', [
-                    '*', ['get', 'fadeOpacity'], ['*', ['get', 'baseOpacity'], ['case', ['==', ['get', 'anim'], 'Breathing'], breath, 1]]
-                ]);
+            // Gradient Color Chase (Mượt 60fps)
+            if (map.getLayer('lyr-line-grad') && state.line.present.length > 0) {
+                let activeGradFeat = state.line.present.find(f => f.properties.anim === 'Preset 2');
+                if (activeGradFeat) {
+                    let c1 = activeGradFeat.properties.color; let c2 = activeGradFeat.properties.color2;
+                    let phase = (t / 1000) % 1; // 0 to 1 loop
+                    let stops = [
+                        0, c1,
+                        Math.max(0, phase - 0.2), c1,
+                        phase, c2,
+                        Math.min(1, phase + 0.2), c1,
+                        1, c1
+                    ];
+                    map.setPaintProperty('lyr-line-grad', 'line-gradient', ['interpolate', ['linear'], ['line-progress'], ...stops]);
+                }
             }
+
+            // Shape Animations
+            let breath = (Math.sin(t / 400) * 0.3) + 0.7; 
+            if (map.getLayer('lyr-shape-fill')) map.setPaintProperty('lyr-shape-fill', 'fill-opacity', ['*', ['get', 'fadeOpacity'], ['*', ['get', 'baseOpacity'], ['case', ['==', ['get', 'anim'], 'Breathing'], breath, 1]]]);
             
-            let pulse = (Math.sin(time / 200) + 1) * 3; // 0 to 6
+            let pulse = (Math.sin(t / 150) + 1) * 2; 
             if (map.getLayer('lyr-shape-border')) {
-                map.setPaintProperty('lyr-shape-border', 'line-width', [
-                    'case', 
-                    ['==', ['get', 'anim'], 'Pulsing Glow'], pulse + 2, 
-                    ['==', ['get', 'anim'], 'Chasing Border'], 4, 
-                    2
-                ]);
-                map.setPaintProperty('lyr-shape-border', 'line-opacity', [
-                    '*', ['get', 'fadeOpacity'], ['case', ['==', ['get', 'anim'], 'Pulsing Glow'], 1, 1]
-                ]);
-                map.setPaintProperty('lyr-shape-border', 'line-dasharray', [
-                    'case', ['==', ['get', 'anim'], 'Chasing Border'], seqP1[step1], [1, 0]
-                ]);
+                map.setPaintProperty('lyr-shape-border', 'line-width', ['case', ['==', ['get', 'anim'], 'Pulsing Glow'], pulse + 2, ['==', ['get', 'anim'], 'Chasing Border'], 4, 2]);
+                map.setPaintProperty('lyr-shape-border', 'line-opacity', ['*', ['get', 'fadeOpacity'], ['case', ['==', ['get', 'anim'], 'Pulsing Glow'], 1, 1]]);
+                map.setPaintProperty('lyr-shape-border', 'line-dasharray', ['case', ['==', ['get', 'anim'], 'Chasing Border'], p1Seq[s1], [1, 0]]);
             }
 
-            requestAnimationFrame(animateLayers);
+            if(!isRecording) requestAnimationFrame(animateEngine);
         }
 
-        // Bắt click để sửa Object
-        map.on('click', (e) => {
-            if (isAddingMarker || isRecording) return;
-            let features = map.queryRenderedFeatures(e.point, { layers: ['lyr-line-core', 'lyr-line-dash-p3', 'lyr-shape-fill', 'lyr-markers'] });
+        // ================= XỬ LÝ UNDO / REDO =================
+        function saveState(type, data) {
+            let ctx = state[type];
+            ctx.past.push(JSON.parse(JSON.stringify(ctx.present)));
+            ctx.present = JSON.parse(JSON.stringify(data));
+            ctx.future = [];
+            if(type === 'cam') renderKeyframes(); else syncToMap();
+        }
+        function undo(type) {
+            let ctx = state[type]; if(ctx.past.length === 0) return;
+            ctx.future.push(JSON.parse(JSON.stringify(ctx.present)));
+            ctx.present = ctx.past.pop();
+            if(type === 'cam') renderKeyframes(); else syncToMap();
+        }
+        function redo(type) {
+            let ctx = state[type]; if(ctx.future.length === 0) return;
+            ctx.past.push(JSON.parse(JSON.stringify(ctx.present)));
+            ctx.present = ctx.future.pop();
+            if(type === 'cam') renderKeyframes(); else syncToMap();
+        }
+        function syncToMap(currentTime = -1) {
+            function calcOp(m) {
+                let op = 1, fd = 0.5;
+                if (currentTime >= 0) {
+                    if (currentTime < m.properties.start || currentTime > m.properties.end) op = 0;
+                    else if (currentTime - m.properties.start < fd) op = (currentTime - m.properties.start) / fd;
+                    else if (m.properties.end - currentTime < fd) op = (m.properties.end - currentTime) / fd;
+                }
+                if (m.properties.markerType === 'pin') { let el = document.getElementById(m.properties.id); if (el) el.style.opacity = Math.max(0, Math.min(1, op)); }
+                return { ...m, properties: { ...m.properties, fadeOpacity: Math.max(0, Math.min(1, op)) } };
+            }
             
-            document.querySelectorAll('.box').forEach(b => b.classList.remove('highlight'));
-            document.getElementById('editor-line').style.display = 'none';
-            document.getElementById('editor-shape').style.display = 'none';
-            document.getElementById('editor-marker').style.display = 'none';
-            document.getElementById('box-timeline').style.display = 'none';
-            activeObj = null;
+            map.getSource('src-lines').setData({ type: 'FeatureCollection', features: state.line.present.map(calcOp) });
+            map.getSource('src-shapes').setData({ type: 'FeatureCollection', features: state.shape.present.map(calcOp) });
+            map.getSource('src-markers').setData({ type: 'FeatureCollection', features: state.marker.present.filter(m => m.properties.markerType === 'img').map(calcOp) });
+        }
 
-            if (features.length > 0) {
-                let feat = features[0];
-                if (feat.layer.id.includes('line')) selectObject('line', feat.properties.id);
-                else if (feat.layer.id === 'lyr-shape-fill') selectObject('shape', feat.properties.id);
-                else if (feat.layer.id === 'lyr-markers') selectObject('marker', feat.properties.id);
+        // ================= VẼ VÀ NẮN CHỈNH NODE (VERTEX) =================
+        document.getElementById('btn-draw-line').addEventListener('click', () => { draw.changeMode('draw_line_string'); activeObj = null; });
+        document.getElementById('btn-draw-shape').addEventListener('click', () => { draw.changeMode('draw_polygon'); activeObj = null; });
+
+        map.on('draw.create', (e) => {
+            const feat = e.features[0]; draw.delete(feat.id); // Tạm xóa khỏi draw default để nạp vào DB của ta
+            let vDur = parseInt(document.getElementById('video-duration').value) / 1000;
+            const id = 'geo-' + Date.now();
+            
+            if (feat.geometry.type === 'LineString') {
+                let arr = [...state.line.present, { type: 'Feature', geometry: feat.geometry, properties: { id, anim: 'Preset 1', color: '#ff3300', color2: '#00ffff', width: 6, start: 0, end: vDur, fadeOpacity: 1 } }];
+                saveState('line', arr); selectGeo('line', id);
+            } else {
+                let arr = [...state.shape.present, { type: 'Feature', geometry: feat.geometry, properties: { id, anim: 'Breathing', color: '#00ffff', baseOpacity: 0.4, start: 0, end: vDur, fadeOpacity: 1 } }];
+                saveState('shape', arr); selectGeo('shape', id);
             }
         });
 
-        function selectObject(type, id) {
-            activeObj = { type, id };
-            document.getElementById('box-timeline').style.display = 'block';
+        // Kéo thả Node sửa hình
+        map.on('draw.update', (e) => {
+            if(!activeObj) return;
+            const updatedFeat = e.features[0];
+            let list = [...state[activeObj.type].present];
+            let idx = list.findIndex(x => x.properties.id === activeObj.id);
+            if (idx > -1) {
+                list[idx].geometry = updatedFeat.geometry; // Cập nhật tọa độ Node mới
+                saveState(activeObj.type, list);
+            }
+        });
+
+        // Bắt click chọn Đối tượng
+        map.on('click', (e) => {
+            if (isAddingMarker || isRecording) return;
+            // Kiểm tra click vào hình nào
+            let feats = map.queryRenderedFeatures(e.point, { layers: ['lyr-line-core', 'lyr-line-glow-outer', 'lyr-shape-fill', 'lyr-markers'] });
             
-            let item = state[type].find(x => x.properties.id === id);
+            clearSelection();
+            if (feats.length > 0) {
+                let f = feats[0];
+                if (f.layer.id.includes('line')) selectGeo('line', f.properties.id);
+                else if (f.layer.id === 'lyr-shape-fill') selectGeo('shape', f.properties.id);
+                else if (f.layer.id === 'lyr-markers') selectGeo('marker', f.properties.id);
+            }
+        });
+
+        function clearSelection() {
+            activeObj = null; draw.deleteAll(); // Xóa node hiển thị
+            document.querySelectorAll('.box').forEach(b => b.classList.remove('highlight'));
+            document.querySelectorAll('.custom-html-marker, .pin-marker').forEach(el => el.classList.remove('selected'));
+            ['editor-line', 'editor-shape', 'editor-marker'].forEach(id => document.getElementById(id).style.display = 'none');
+        }
+
+        function selectGeo(type, id) {
+            activeObj = { type, id };
+            let item = state[type].present.find(x => x.properties.id === id);
             if (!item) return;
 
+            // Nếu là Line/Shape, đẩy vào Draw để Sale nắn Node
+            if(type === 'line' || type === 'shape') {
+                draw.deleteAll(); draw.add({ type: 'Feature', id: item.properties.id, geometry: item.geometry });
+                draw.changeMode('direct_select', { featureId: item.properties.id }); // Mở chế độ chỉnh điểm
+            }
+
+            // Hiện Panel config
             if (type === 'line') {
-                document.getElementById('box-line').classList.add('highlight');
-                document.getElementById('editor-line').style.display = 'block';
+                document.getElementById('box-line').classList.add('highlight'); document.getElementById('editor-line').style.display = 'block';
                 document.getElementById('edit-line-anim').value = item.properties.anim;
                 document.getElementById('edit-line-color').value = item.properties.color;
                 document.getElementById('edit-line-color2').value = item.properties.color2;
                 document.getElementById('edit-line-width').value = item.properties.width;
                 document.getElementById('row-line-color2').style.display = (item.properties.anim === 'Preset 2') ? 'flex' : 'none';
-                document.getElementById('timeline-hint').innerText = `Đang cấu hình: Đường giao thông`;
             } else if (type === 'shape') {
-                document.getElementById('box-shape').classList.add('highlight');
-                document.getElementById('editor-shape').style.display = 'block';
+                document.getElementById('box-shape').classList.add('highlight'); document.getElementById('editor-shape').style.display = 'block';
                 document.getElementById('edit-shape-anim').value = item.properties.anim;
                 document.getElementById('edit-shape-color').value = item.properties.color;
-                document.getElementById('edit-shape-opacity').value = item.properties.baseOpacity * 100;
-                document.getElementById('timeline-hint').innerText = `Đang cấu hình: Khối khu vực`;
             } else if (type === 'marker') {
-                document.getElementById('box-marker').classList.add('highlight');
-                document.getElementById('editor-marker').style.display = 'block';
+                document.getElementById('box-marker').classList.add('highlight'); document.getElementById('editor-marker').style.display = 'block';
                 document.getElementById('edit-marker-text').value = item.properties.text || '';
                 document.getElementById('edit-marker-scale').value = item.properties.scale;
-                document.getElementById('timeline-hint').innerText = `Đang cấu hình: Hình ảnh / Chữ`;
+                document.getElementById('edit-marker-start').value = item.properties.start;
+                document.getElementById('edit-marker-end').value = item.properties.end;
+                
+                let el = document.getElementById(id);
+                if(el) el.classList.add('selected'); // Hiện viền chọn cho HTML
             }
-
-            let maxT = parseInt(document.getElementById('video-duration').value) / 1000;
-            sliderStart.max = maxT; sliderEnd.max = maxT;
-            sliderStart.value = item.properties.start; sliderEnd.value = item.properties.end;
-            updateTimelineUI();
         }
 
-        // ================= XỬ LÝ TIMELINE =================
-        const sliderStart = document.getElementById('edit-timeline-start');
-        const sliderEnd = document.getElementById('edit-timeline-end');
+        // Cập nhật thuộc tính
+        function updateProp(type, prop, val) {
+            if(!activeObj) return;
+            let arr = [...state[type].present];
+            let idx = arr.findIndex(x => x.properties.id === activeObj.id);
+            if (idx > -1) { arr[idx].properties[prop] = val; saveState(type, arr); }
+        }
         
-        function updateTimelineUI() {
-            if (!activeObj) return;
-            let maxT = parseInt(document.getElementById('video-duration').value) / 1000;
-            let s = parseFloat(sliderStart.value); let e = parseFloat(sliderEnd.value);
-            if (s > e - 0.5) { s = e - 0.5; sliderStart.value = s; } 
-            
-            document.getElementById('tl-fill').style.left = (s / maxT * 100) + '%';
-            document.getElementById('tl-fill').style.width = ((e - s) / maxT * 100) + '%';
-            document.getElementById('time-label').innerText = `${s.toFixed(1)}s - ${e.toFixed(1)}s`;
-            
-            updateProp(state[activeObj.type], activeObj.id, 'start', s);
-            updateProp(state[activeObj.type], activeObj.id, 'end', e);
-        }
-        sliderStart.addEventListener('input', updateTimelineUI);
-        sliderEnd.addEventListener('input', updateTimelineUI);
-
-        document.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (activeObj) {
-                    if (activeObj.type === 'marker') {
-                        // Xóa HTML element nếu là PIN
-                        let item = state.marker.find(x => x.properties.id === activeObj.id);
-                        if (item && item.properties.markerType === 'pin') {
-                            const el = document.getElementById(activeObj.id);
-                            if (el) el.remove();
-                        }
-                    }
-                    state[activeObj.type] = state[activeObj.type].filter(x => x.properties.id !== activeObj.id);
-                    document.getElementById(`editor-${activeObj.type}`).style.display = 'none';
-                    document.getElementById('box-timeline').style.display = 'none';
-                    activeObj = null; refreshMapData();
-                }
-            });
-        });
-
-        // ================= TẠO ĐỐI TƯỢNG HÌNH HỌC =================
-        document.getElementById('btn-draw-line').addEventListener('click', () => draw.changeMode('draw_line_string'));
-        document.getElementById('btn-draw-shape').addEventListener('click', () => draw.changeMode('draw_polygon'));
-
-        map.on('draw.create', (e) => {
-            const feat = e.features[0]; setTimeout(() => draw.delete(feat.id), 10);
-            let vDur = parseInt(document.getElementById('video-duration').value) / 1000;
-            const id = 'geo-' + Date.now();
-
-            if (feat.geometry.type === 'LineString') {
-                state.line.push({ type: 'Feature', geometry: feat.geometry, properties: { id, anim: 'Preset 1', color: '#ff3300', color2: '#00ffff', width: 6, start: 0, end: vDur, fadeOpacity: 1 } });
-                selectObject('line', id);
-            } else {
-                state.shape.push({ type: 'Feature', geometry: feat.geometry, properties: { id, anim: 'Breathing', color: '#00ffff', baseOpacity: 0.4, start: 0, end: vDur, fadeOpacity: 1 } });
-                selectObject('shape', id);
-            }
-            refreshMapData();
-        });
-
-        // Edit Properties
-        document.getElementById('edit-line-anim').addEventListener('change', (e) => {
-            document.getElementById('row-line-color2').style.display = (e.target.value === 'Preset 2') ? 'flex' : 'none';
-            updateProp(state.line, activeObj.id, 'anim', e.target.value);
-        });
-        document.getElementById('edit-line-color').addEventListener('input', (e) => updateProp(state.line, activeObj.id, 'color', e.target.value));
-        document.getElementById('edit-line-color2').addEventListener('input', (e) => updateProp(state.line, activeObj.id, 'color2', e.target.value));
-        document.getElementById('edit-line-width').addEventListener('input', (e) => updateProp(state.line, activeObj.id, 'width', parseFloat(e.target.value)));
+        document.getElementById('edit-line-anim').addEventListener('change', (e) => { document.getElementById('row-line-color2').style.display = (e.target.value === 'Preset 2') ? 'flex' : 'none'; updateProp('line', 'anim', e.target.value); });
+        document.getElementById('edit-line-color').addEventListener('input', (e) => updateProp('line', 'color', e.target.value));
+        document.getElementById('edit-line-color2').addEventListener('input', (e) => updateProp('line', 'color2', e.target.value));
+        document.getElementById('edit-line-width').addEventListener('input', (e) => updateProp('line', 'width', parseFloat(e.target.value)));
         
-        document.getElementById('edit-shape-anim').addEventListener('change', (e) => updateProp(state.shape, activeObj.id, 'anim', e.target.value));
-        document.getElementById('edit-shape-color').addEventListener('input', (e) => updateProp(state.shape, activeObj.id, 'color', e.target.value));
-        document.getElementById('edit-shape-opacity').addEventListener('input', (e) => updateProp(state.shape, activeObj.id, 'baseOpacity', parseFloat(e.target.value)/100));
+        document.getElementById('edit-shape-anim').addEventListener('change', (e) => updateProp('shape', 'anim', e.target.value));
+        document.getElementById('edit-shape-color').addEventListener('input', (e) => updateProp('shape', 'color', e.target.value));
 
-        function updateProp(collection, id, prop, val) {
-            let item = collection.find(x => x.properties.id === id);
-            if (item) { item.properties[prop] = val; refreshMapData(); }
-        }
-
-        // ================= TẠO MARKER VÀ PIN =================
+        // ================= HTML MARKER & PIN =================
         function createTextImage(text) {
             const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
             ctx.font = "800 60px Manrope"; const metrics = ctx.measureText(text);
@@ -508,106 +472,95 @@
             return canvas.toDataURL();
         }
 
-        document.getElementById('marker-file').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if(file) { const reader = new FileReader(); reader.onload = (ev) => loadedImgBase64 = ev.target.result; reader.readAsDataURL(file); }
-        });
-
-        document.getElementById('btn-add-marker').addEventListener('click', () => {
-            isAddingMarker = true; addingType = 'img'; document.getElementById('btn-add-marker').innerText = '🎯 Click lên Map...'; map.getCanvas().style.cursor = 'crosshair';
-        });
-        
-        document.getElementById('btn-add-pin').addEventListener('click', () => {
-            isAddingMarker = true; addingType = 'pin'; document.getElementById('btn-add-pin').innerText = '🎯 Click lên Map...'; map.getCanvas().style.cursor = 'crosshair';
-        });
+        document.getElementById('marker-file').addEventListener('change', (e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (ev) => loadedImgBase64 = ev.target.result; reader.readAsDataURL(file); } });
+        document.getElementById('btn-add-marker').addEventListener('click', () => { isAddingMarker = true; addingType = 'img'; document.getElementById('btn-add-marker').innerText = '🎯 Click Map...'; });
+        document.getElementById('btn-add-pin').addEventListener('click', () => { isAddingMarker = true; addingType = 'pin'; document.getElementById('btn-add-pin').innerText = '🎯 Click Map...'; });
 
         map.on('click', (e) => {
             if (!isAddingMarker) return;
             const id = 'mk-' + Date.now();
             let vDur = parseInt(document.getElementById('video-duration').value) / 1000;
+            let arr = [...state.marker.present];
 
             if (addingType === 'pin') {
-                state.marker.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] }, properties: { id, markerType: 'pin', start: 0, end: vDur, fadeOpacity: 1 } });
-                renderHTMLPin(state.marker[state.marker.length - 1]);
-                selectObject('marker', id);
+                arr.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] }, properties: { id, markerType: 'pin', start: 0, end: vDur, fadeOpacity: 1 } });
+                saveState('marker', arr); renderPin(arr[arr.length - 1]); selectGeo('marker', id);
             } else {
                 const text = document.getElementById('marker-text').value;
                 let imgData = loadedImgBase64 || (text ? createTextImage(text) : null);
                 if (imgData) {
-                    const img = new Image();
-                    img.onload = () => {
+                    const img = new Image(); img.onload = () => {
                         map.addImage(id, img);
-                        state.marker.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] }, properties: { id, markerType: 'img', imgId: id, scale: text ? 0.5 : 0.2, text: text, start: 0, end: vDur, fadeOpacity: 1 } });
-                        refreshMapData(); selectObject('marker', id);
-                    };
-                    img.src = imgData;
+                        arr.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [e.lngLat.lng, e.lngLat.lat] }, properties: { id, markerType: 'img', imgId: id, scale: text ? 0.5 : 0.2, text: text, start: 0, end: vDur, fadeOpacity: 1 } });
+                        saveState('marker', arr); selectGeo('marker', id);
+                    }; img.src = imgData;
                 }
             }
-
-            isAddingMarker = false; addingType = ''; map.getCanvas().style.cursor = '';
-            document.getElementById('btn-add-marker').innerText = '🖼️ Thêm Chữ / Ảnh';
-            document.getElementById('btn-add-pin').innerText = '📍 Thêm Location';
+            isAddingMarker = false; addingType = '';
+            document.getElementById('btn-add-marker').innerText = '🖼️ Thêm Text/Ảnh'; document.getElementById('btn-add-pin').innerText = '📍 Thêm Location';
             document.getElementById('marker-text').value = ''; document.getElementById('marker-file').value = ''; loadedImgBase64 = null;
         });
 
-        function renderHTMLPin(markerData) {
-            const el = document.createElement('div');
-            el.className = 'pin-marker'; el.id = markerData.properties.id;
-            const mapboxMarker = new mapboxgl.Marker({ element: el }).setLngLat(markerData.geometry.coordinates).addTo(map);
-            el.addEventListener('click', (evt) => { evt.stopPropagation(); selectObject('marker', markerData.properties.id); });
+        function renderPin(data) {
+            const el = document.createElement('div'); el.className = 'pin-marker'; el.id = data.properties.id;
+            new mapboxgl.Marker({ element: el }).setLngLat(data.geometry.coordinates).addTo(map);
+            el.addEventListener('click', (evt) => { evt.stopPropagation(); clearSelection(); selectGeo('marker', data.properties.id); });
         }
 
         document.getElementById('edit-marker-text').addEventListener('input', (e) => {
-            let item = state.marker.find(x => x.properties.id === activeObj.id);
+            let item = state.marker.present.find(x => x.properties.id === activeObj.id);
             if (item && item.properties.markerType === 'img') {
-                item.properties.text = e.target.value;
-                const img = new Image(); img.onload = () => { if (map.hasImage(item.properties.imgId)) map.removeImage(item.properties.imgId); map.addImage(item.properties.imgId, img); refreshMapData(); };
+                updateProp('marker', 'text', e.target.value);
+                const img = new Image(); img.onload = () => { if (map.hasImage(item.properties.imgId)) map.removeImage(item.properties.imgId); map.addImage(item.properties.imgId, img); syncToMap(); };
                 img.src = createTextImage(e.target.value);
             }
         });
-        document.getElementById('edit-marker-scale').addEventListener('input', (e) => updateProp(state.marker, activeObj.id, 'scale', parseFloat(e.target.value)));
-
-        function applyFade(list, currentTime) {
-            return list.map(m => {
-                let op = 1;
-                const fadeDur = 0.5; 
-                if (currentTime >= 0) {
-                    if (currentTime < m.properties.start || currentTime > m.properties.end) op = 0;
-                    else if (currentTime - m.properties.start < fadeDur) op = (currentTime - m.properties.start) / fadeDur;
-                    else if (m.properties.end - currentTime < fadeDur) op = (m.properties.end - currentTime) / fadeDur;
+        document.getElementById('edit-marker-scale').addEventListener('input', (e) => updateProp('marker', 'scale', parseFloat(e.target.value)));
+        document.getElementById('edit-marker-start').addEventListener('input', (e) => updateProp('marker', 'start', parseFloat(e.target.value)));
+        document.getElementById('edit-marker-end').addEventListener('input', (e) => updateProp('marker', 'end', parseFloat(e.target.value)));
+        
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (activeObj) {
+                    if (activeObj.type === 'marker') { let el = document.getElementById(activeObj.id); if(el) el.remove(); }
+                    let arr = state[activeObj.type].present.filter(x => x.properties.id !== activeObj.id);
+                    saveState(activeObj.type, arr); clearSelection();
                 }
-                
-                // Cập nhật Opacity cho HTML Pin markers
-                if (m.properties.markerType === 'pin') {
-                    const el = document.getElementById(m.properties.id);
-                    if (el) el.style.opacity = Math.max(0, Math.min(1, op));
-                }
-                return { ...m, properties: { ...m.properties, fadeOpacity: Math.max(0, Math.min(1, op)) } };
             });
-        }
-
-        function refreshMapData(currentTime = -1) {
-            map.getSource('src-lines').setData({ type: 'FeatureCollection', features: applyFade(state.line, currentTime) });
-            map.getSource('src-shapes').setData({ type: 'FeatureCollection', features: applyFade(state.shape, currentTime) });
-            map.getSource('src-markers').setData({ type: 'FeatureCollection', features: applyFade(state.marker, currentTime).filter(m => m.properties.markerType === 'img') });
-        }
-
-        // ================= XUẤT VIDEO (Crop Fix) =================
-        document.getElementById('btn-add-kf').addEventListener('click', () => {
-            keyframes.push({ center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() });
-            let list = document.getElementById('kf-list'); list.innerHTML = '';
-            keyframes.forEach((k, i) => list.innerHTML += `<div style="padding:5px 0; border-bottom:1px solid #222;">🎬 Góc máy ${i + 1}</div>`);
         });
 
+        // ================= KỊCH BẢN CAMERA & 4K RENDER =================
+        function renderKeyframes() {
+            let list = document.getElementById('kf-list'); list.innerHTML = '';
+            state.cam.present.forEach((k, i) => {
+                let d = document.createElement('div'); d.className = 'kf-item';
+                d.innerHTML = `<span>Góc máy ${i + 1} (Zoom: ${k.zoom.toFixed(1)})</span> <button onclick="updateKF(${i})">Cập nhật</button>`;
+                list.appendChild(d);
+            });
+        }
+        document.getElementById('btn-add-kf').addEventListener('click', () => {
+            let arr = [...state.cam.present, { center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() }];
+            saveState('cam', arr);
+        });
+        window.updateKF = function(idx) {
+            let arr = [...state.cam.present];
+            arr[idx] = { center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing() };
+            saveState('cam', arr); alert(`Đã cập nhật Góc máy ${idx+1}!`);
+        };
+
+        // Thuật toán Toán học Camera mượt mà điện ảnh
+        function cubicEaseInOut(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
         function lerp(start, end, amt) { return (1 - amt) * start + amt * end; }
         
         document.getElementById('btn-record').addEventListener('click', async () => {
-            if (keyframes.length < 2) return alert("Cần ít nhất 2 góc máy!");
-            isRecording = true;
+            let kfs = state.cam.present;
+            if (kfs.length < 2) return alert("Cần tối thiểu 2 góc Camera để tạo chuyển động!");
+            isRecording = true; clearSelection();
 
+            // Setup Render 4K resolution
             const is169 = document.getElementById('btn-16-9').classList.contains('active');
-            const targetWidth = is169 ? 1920 : 1080;
-            const targetHeight = is169 ? 1080 : 1920;
+            const targetWidth = is169 ? 3840 : 2160; 
+            const targetHeight = is169 ? 2160 : 3840;
             
             const exportCanvas = document.createElement('canvas'); 
             exportCanvas.width = targetWidth; exportCanvas.height = targetHeight;
@@ -615,54 +568,52 @@
 
             const stream = exportCanvas.captureStream(60);
             let mediaRecorder;
-            try { mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 20000000 }); } 
-            catch(e) { mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 20000000 }); }
+            try { mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 50000000 }); } 
+            catch(e) { mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 50000000 }); }
             
             const chunks = [];
             const durationMs = parseInt(document.getElementById('video-duration').value);
 
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                const url = URL.createObjectURL(new Blob(chunks, { type: mediaRecorder.mimeType }));
-                const a = document.createElement('a'); a.href = url; a.download = `AnViet-Project.mp4`; a.click();
-                document.getElementById('recording-overlay').style.display = 'none';
-                document.getElementById('btn-record').disabled = false;
-                isRecording = false; refreshMapData(); 
+                const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(chunks, { type: mediaRecorder.mimeType })); a.download = `AnViet-Cinematic-4K.mp4`; a.click();
+                document.getElementById('recording-overlay').style.display = 'none'; document.getElementById('btn-record').disabled = false;
+                isRecording = false; syncToMap(); 
             };
 
             mediaRecorder.start();
             document.getElementById('btn-record').disabled = true; document.getElementById('recording-overlay').style.display = 'block';
 
             const startTime = Date.now();
-            const totalSegments = keyframes.length - 1;
+            const totalSegments = kfs.length - 1;
 
             function renderFrame() {
                 let elapsed = Date.now() - startTime;
                 if (elapsed > durationMs) elapsed = durationMs;
 
-                document.getElementById('recording-overlay').innerText = `● ĐANG QUAY: ${(elapsed / 1000).toFixed(1)}s`;
-                refreshMapData(elapsed / 1000);
-
-                let progress = elapsed / durationMs;
-                let currentSegment = Math.floor(progress * totalSegments);
-                if (currentSegment >= totalSegments) currentSegment = totalSegments - 1;
-                let segmentProgress = (progress * totalSegments) - currentSegment;
+                document.getElementById('recording-overlay').innerText = `● ĐANG RENDER 4K: ${(elapsed / 1000).toFixed(1)}s`;
                 
-                let kf1 = keyframes[currentSegment]; let kf2 = keyframes[currentSegment + 1];
+                // Đồng bộ nhịp Animation
+                animateEngine(); syncToMap(elapsed / 1000);
+
+                let rawProgress = elapsed / durationMs;
+                let easedProgress = cubicEaseInOut(rawProgress); // Áp dụng thuật toán nhanh dần giữa, chậm cuối
+                
+                let currentSegment = Math.floor(easedProgress * totalSegments);
+                if (currentSegment >= totalSegments) currentSegment = totalSegments - 1;
+                let segmentProgress = (easedProgress * totalSegments) - currentSegment;
+                
+                let kf1 = kfs[currentSegment]; let kf2 = kfs[currentSegment + 1];
                 map.jumpTo({ center: [lerp(kf1.center.lng, kf2.center.lng, segmentProgress), lerp(kf1.center.lat, kf2.center.lat, segmentProgress)], zoom: lerp(kf1.zoom, kf2.zoom, segmentProgress), pitch: lerp(kf1.pitch, kf2.pitch, segmentProgress), bearing: lerp(kf1.bearing, kf2.bearing, segmentProgress) });
 
-                // FIX BÓP MÉO HÌNH (CROP DỰA TRÊN ASPECT RATIO)
+                // Tính toán Crop Center Canvas 4K xuất chuẩn
                 const mapCanvas = map.getCanvas();
-                const sw = mapCanvas.width;
-                const sh = mapCanvas.height;
+                const sw = mapCanvas.width; const sh = mapCanvas.height;
                 const scale = Math.max(targetWidth / sw, targetHeight / sh);
-                const drawW = sw * scale;
-                const drawH = sh * scale;
-                const drawX = (targetWidth - drawW) / 2;
-                const drawY = (targetHeight - drawH) / 2;
+                const drawW = sw * scale; const drawH = sh * scale;
+                const drawX = (targetWidth - drawW) / 2; const drawY = (targetHeight - drawH) / 2;
 
-                exportCtx.fillStyle = '#000';
-                exportCtx.fillRect(0, 0, targetWidth, targetHeight);
+                exportCtx.fillStyle = '#000'; exportCtx.fillRect(0, 0, targetWidth, targetHeight);
                 exportCtx.drawImage(mapCanvas, drawX, drawY, drawW, drawH);
 
                 if (elapsed < durationMs) requestAnimationFrame(renderFrame);
@@ -671,8 +622,25 @@
             renderFrame();
         });
 
-        document.getElementById('btn-16-9').addEventListener('click', (e) => { document.getElementById('btn-9-16').classList.remove('active'); e.target.classList.add('active'); document.getElementById('map-wrapper').className = 'ratio-16-9'; setTimeout(()=>map.resize(), 100); });
-        document.getElementById('btn-9-16').addEventListener('click', (e) => { document.getElementById('btn-16-9').classList.remove('active'); e.target.classList.add('active'); document.getElementById('map-wrapper').className = 'ratio-9-16'; setTimeout(()=>map.resize(), 100); });
+        // ================= GIAO DIỆN FRAME 9:16 (MASK) =================
+        function updateMask() {
+            const is169 = document.getElementById('btn-16-9').classList.contains('active');
+            const l = document.getElementById('mask-left'); const r = document.getElementById('mask-right');
+            if (is169) {
+                l.style.width = '0'; r.style.width = '0';
+            } else {
+                // Tính toán vùng đen cần che để lộ đúng khoảng giữa 9:16
+                let w = document.getElementById('workspace').clientWidth;
+                let h = document.getElementById('workspace').clientHeight;
+                let targetW = h * (9/16);
+                let maskW = (w - targetW) / 2;
+                l.style.width = Math.max(0, maskW) + 'px';
+                r.style.width = Math.max(0, maskW) + 'px';
+            }
+        }
+        document.getElementById('btn-16-9').addEventListener('click', (e) => { document.getElementById('btn-9-16').classList.remove('active'); e.target.classList.add('active'); updateMask(); });
+        document.getElementById('btn-9-16').addEventListener('click', (e) => { document.getElementById('btn-16-9').classList.remove('active'); e.target.classList.add('active'); updateMask(); });
+        window.addEventListener('resize', updateMask);
         
         document.getElementById('toggle-labels').addEventListener('change', (e) => {
             map.getStyle().layers.forEach(l => { if (l.type === 'symbol' && l.id !== 'lyr-markers') map.setLayoutProperty(l.id, 'visibility', e.target.checked ? 'visible' : 'none'); });
